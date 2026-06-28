@@ -6,16 +6,16 @@ import uuid
 def _get_or_create_dev_student():
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute("SELECT id FROM students WHERE id = 1")
+    cursor.execute("SELECT id FROM students LIMIT 1")
     result = cursor.fetchone()
-    if not result:
+    if result:
+        student_id = result[0]
+    else:
         cursor.execute("INSERT INTO users (name, email, password_hash, role) VALUES ('Dev Student', 'dev@example.com', 'placeholder', 'student')")
         user_id = cursor.lastrowid
         cursor.execute("INSERT INTO students (user_id, student_id_number) VALUES (%s, %s)", (user_id, 'DEV001'))
         connection.commit()
         student_id = cursor.lastrowid
-    else:
-        student_id = result[0]
     cursor.close()
     connection.close()
     return student_id
@@ -29,7 +29,28 @@ def register_routes(app):
 
     @app.route("/student/dashboard")
     def student_dashboard():
-        return render_template("student_dashboard.html")
+        student_id = _get_or_create_dev_student()
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT u.name, ss.overall_score, ss.risk_level, ss.last_assessment_date,
+                   (SELECT COUNT(*) FROM survey_responses sr WHERE sr.student_id = %s) as total_surveys
+            FROM users u
+            JOIN students s ON u.id = s.user_id
+            LEFT JOIN survey_summary ss ON s.id = ss.student_id
+            WHERE s.id = %s
+        """, (student_id, student_id))
+        result = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        dashboard_data = {
+            "name": result[0] if result else "Student",
+            "score": result[1] if result and result[1] else 0,
+            "risk_level": result[2] if result and result[2] else "Not Assessed",
+            "last_assessment": result[3] if result and result[3] else None,
+            "total_surveys": result[4] if result else 0
+        }
+        return render_template("student_dashboard.html", data=dashboard_data)
 
     @app.route("/student/survey", methods=["GET", "POST"])
     def student_survey():
@@ -88,3 +109,38 @@ def register_routes(app):
             "application": "running",
             "database": result
         })
+
+    @app.route("/admin/dashboard")
+    def admin_dashboard():
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT COUNT(*) FROM students")
+        total_students = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'High'")
+        high_risk = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'Medium'")
+        medium_risk = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'Low'")
+        low_risk = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM survey_responses")
+        total_surveys = cursor.fetchone()[0]
+        cursor.execute("""
+            SELECT u.name, ss.survey_completion_date, ss.risk_level, ss.overall_score
+            FROM survey_summary ss
+            JOIN students s ON ss.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            ORDER BY ss.last_assessment_date DESC
+            LIMIT 10
+        """)
+        recent_submissions = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        admin_data = {
+            "total_students": total_students,
+            "high_risk": high_risk,
+            "medium_risk": medium_risk,
+            "low_risk": low_risk,
+            "total_surveys": total_surveys,
+            "recent_submissions": recent_submissions
+        }
+        return render_template("admin_dashboard.html", data=admin_data)
