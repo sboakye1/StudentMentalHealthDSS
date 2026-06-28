@@ -59,6 +59,32 @@ This project is the initial foundation for a Flask-based decision support system
    SHOW DATABASES;
    ```
 
+#### Load Database Schema
+After creating the database, load the complete schema with all tables, indexes, views, and stored procedures:
+
+```bash
+mysql -u root -p student_mental_health_dss < database/schema.sql
+```
+
+**Verify Schema Installation:**
+```bash
+mysql -u root -p student_mental_health_dss
+```
+
+Then run in MySQL:
+```sql
+-- Check tables created
+SHOW TABLES;
+
+-- Check views
+SHOW FULL TABLES WHERE Table_Type = 'VIEW';
+
+-- Verify sample survey questions were inserted
+SELECT COUNT(*) FROM survey_questions;
+```
+
+Expected output: 15 tables + 3 views created, and 15 survey questions inserted
+
 ### 3. Python Application Setup
 1. Create and activate a virtual environment:
    - `python -m venv venv`
@@ -166,3 +192,61 @@ config = get_database_config()
 
 ## Deployment Readiness
 The project is structured for deployment with environment-based configuration and an application factory pattern. Secrets and environment-specific values are supplied through environment variables in the `.env` file.
+
+## Database Schema Documentation
+
+### Overview
+The application uses a comprehensive MySQL schema designed for the DSS system. The schema includes:
+
+- **11 core tables**: users, students, counselors, survey_questions, survey_responses, survey_summary, appointments, counselor_assignments, counselor_notes, dss_logs, audit_logs
+- **3 views**: v_active_students_with_counselors, v_high_risk_students, v_counselor_workload
+- **2 stored procedures**: calculate_student_risk_level, assign_counselor_to_student
+
+### Key Features
+✓ 3NF Normalization for data integrity  
+✓ Comprehensive indexing for performance  
+✓ Referential integrity with cascading rules  
+✓ HIPAA/FERPA compliance design  
+✓ Complete audit trail tracking  
+✓ DSS decision logging and tracking  
+
+### Documentation Files
+- **[SCHEMA_DOCUMENTATION.md](database/SCHEMA_DOCUMENTATION.md)**: Complete schema design with entity relationships, normalization analysis, and implementation guide
+- **[QUICK_REFERENCE.md](database/QUICK_REFERENCE.md)**: Quick lookup for common queries and operations
+- **[schema.sql](database/schema.sql)**: Complete SQL schema with all DDL statements
+
+### Understanding the Schema
+
+#### Main Entities
+- **Users**: Authentication and role management (student, counselor, admin)
+- **Students**: Student profiles with risk tracking
+- **Counselors**: Counselor credentials and workload management
+- **Survey System**: Questions, responses, and risk summaries
+- **Appointments**: Scheduling and session tracking
+- **DSS Logs**: Decision tracking and audit trail
+
+#### Data Flow
+Survey Intake → Risk Calculation → DSS Decision → Appointment Assignment → Session Documentation
+
+### Important Tables for Development
+
+**survey_questions**: Master list of assessment questions (15 sample questions included)
+
+**survey_responses**: Individual student survey answers (collected during assessment)
+
+**survey_summary**: Cached DSS calculation results with risk levels
+
+**dss_logs**: Complete decision history for auditing and validation
+
+### First-Time Schema Verification
+After loading schema.sql, verify with:
+```bash
+# Check table count (should show 11 tables)
+mysql -u root -p student_mental_health_dss -e "SELECT COUNT(*) AS TableCount FROM information_schema.TABLES WHERE TABLE_SCHEMA='student_mental_health_dss';"
+
+# Check view count (should show 3 views)
+mysql -u root -p student_mental_health_dss -e "SELECT COUNT(*) AS ViewCount FROM information_schema.TABLES WHERE TABLE_SCHEMA='student_mental_health_dss' AND TABLE_TYPE='VIEW';"
+
+# Check stored procedures (should show 2 procedures)
+mysql -u root -p student_mental_health_dss -e "SHOW PROCEDURE STATUS WHERE Db='student_mental_health_dss';"
+```
