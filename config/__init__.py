@@ -20,28 +20,25 @@ class Config:
 
 
 def create_app() -> Flask:
-    # Use the current working directory as the base
-    # This should be the project root when running python app.py
-    base_dir = os.getcwd()
-    
-    template_folder = os.path.join(base_dir, 'templates')
-    static_folder = os.path.join(base_dir, 'static')
-    static_url_path = '/static'
-    
-    # Create Flask app with explicit root_path, template and static folder paths
-    # The root_path is critical - it's used for resolving resources
+    # __name__ here resolves to 'config', which would make Flask look for
+    # templates/ and static/ inside the config/ package folder — wrong.
+    # We explicitly set root_path to the project root directory so that
+    # Flask resolves templates/ and static/ from StudentMentalHealthDSS/.
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
     app = Flask(
         __name__,
-        root_path=base_dir,  # Explicitly set root_path to project root
-        template_folder=template_folder,
-        static_folder=static_folder,
-        static_url_path=static_url_path
+        root_path=base_dir,
+        template_folder=os.path.join(base_dir, "templates"),
+        static_folder=os.path.join(base_dir, "static"),
+        static_url_path="/static",
     )
-    
+
     app.config.from_object(Config)
 
     from routes import register_routes
-
     register_routes(app)
 
     return app
+
+

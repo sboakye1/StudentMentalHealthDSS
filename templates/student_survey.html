@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mental Health Survey</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Student Mental Health Survey</h1>
+      {% if result %}
+        <div class="result-box" style="background-color: 
+          {% if result.risk_level in ['LOW', 'Low'] %}#28a745
+          {% elif result.risk_level in ['MEDIUM', 'Medium'] %}#ffc107
+          {% else %}#dc3545{% endif %}; color: white; padding: 20px; border-radius: 8px;">
+          <h2>Survey Results</h2>
+          <p>Score: {{ result.score }}</p>
+          <p>Risk Level: {{ result.risk_level }}</p>
+        </div>
+        <a href="{{ url_for('student_survey') }}" class="button">Take Survey Again</a>
+      {% else %}
+        <form method="POST" action="{{ url_for('student_survey') }}">
+          {% for q in questions %}
+          <div class="question-box">
+            <p><strong>{{ loop.index }}. {{ q[1] }}</strong></p>
+            <label>
+              <input type="radio" name="question_{{ q[0] }}" value="yes" required> Yes
+            </label>
+            <label>
+              <input type="radio" name="question_{{ q[0] }}" value="no"> No
+            </label>
+          </div>
+          {% endfor %}
+          <button type="submit">Submit Survey</button>
+        </form>
+      {% endif %}
+      <a href="{{ url_for('student_dashboard') }}" class="button">Back to Dashboard</a>
+    </main>
+  </body>
+</html>

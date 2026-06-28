@@ -16,11 +16,11 @@ try:
     print(f"Static folder: {os.path.exists('static')}")
     print()
     
-    from config import create_app
-    print("✓ Config module imported")
+    from app import create_app
+    print("[OK] Config module imported")
     
     app = create_app()
-    print("✓ Flask app created")
+    print("[OK] Flask app created")
     print(f"  Template folder: {app.template_folder}")
     print(f"  Static folder: {app.static_folder}")
     print()
@@ -28,16 +28,16 @@ try:
     print("Testing route rendering...")
     with app.test_client() as client:
         response = client.get('/')
-        print(f"GET / → Status: {response.status_code}")
+        print(f"GET / -> Status: {response.status_code}")
         if response.status_code == 200:
-            print("✓ SUCCESS - Template loaded!")
+            print("[OK] SUCCESS - Template loaded!")
             # Show first part of response
             data = response.data.decode('utf-8')
             print(f"Response length: {len(data)} bytes")
             print("First 300 chars:")
             print(data[:300])
         else:
-            print(f"✗ ERROR - Status {response.status_code}")
+            print(f"[ERROR] Status {response.status_code}")
             print(f"Response: {response.data.decode('utf-8')[:500]}")
             
 except Exception as e:
