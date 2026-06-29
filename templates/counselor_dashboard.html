@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Counselor Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Counselor Dashboard</h1>
+      <p>Welcome to the Counselor Dashboard.</p>
+      <p>Counselor features coming soon.</p>
+      <div>
+        <a href="{{ url_for('home') }}" class="button">Home</a>
+        <a href="{{ url_for('student_dashboard') }}" class="button">Student Dashboard</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="button">Admin Dashboard</a>
+      </div>
+    </main>
+  </body>
+</html>

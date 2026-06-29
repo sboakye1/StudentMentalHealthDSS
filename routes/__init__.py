@@ -102,6 +102,10 @@ def register_routes(app):
             ]
         return render_template("student_survey.html", questions=questions, result=None)
 
+    @app.route("/counselor/dashboard")
+    def counselor_dashboard():
+        return render_template("counselor_dashboard.html")
+
     @app.route("/api/health")
     def health_check():
         result = check_database_health()
@@ -112,6 +116,14 @@ def register_routes(app):
 
     @app.route("/admin/dashboard")
     def admin_dashboard():
+        from flask import current_app
+        import routes
+        import os
+        print(f"DEBUG view_functions: {list(current_app.view_functions.keys())}")
+        print(f"DEBUG url_map: {list(current_app.url_map.iter_rules())}")
+        print(f"DEBUG routes module path: {routes.__file__}")
+        print(f"DEBUG template_folder: {current_app.template_folder}")
+        print(f"DEBUG template exists: {os.path.exists(os.path.join(current_app.template_folder, 'counselor_dashboard.html'))}")
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT COUNT(*) FROM students")
