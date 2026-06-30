@@ -1,6 +1,30 @@
-from flask import render_template, jsonify, request
+from flask import render_template, jsonify, request, session, redirect, url_for, abort
 from database import check_database_health, get_connection
 import uuid
+from functools import wraps
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def role_required(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if "user_id" not in session:
+                return redirect(url_for("login"))
+            if session.get("user_role") != role:
+                expected_dashboard = f"{role}_dashboard"
+                return redirect(url_for(expected_dashboard))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 
 def _get_or_create_dev_student():
@@ -23,11 +47,46 @@ def _get_or_create_dev_student():
 
 def register_routes(app):
 
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        error = None
+        if request.method == "POST":
+            email = request.form.get("email")
+            password = request.form.get("password")
+            connection = get_connection()
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT id, name, password_hash, role FROM users WHERE email = %s AND is_active = TRUE",
+                (email,)
+            )
+            user = cursor.fetchone()
+            cursor.close()
+            connection.close()
+            if user and user[2] == password:
+                session["user_id"] = user[0]
+                session["user_name"] = user[1]
+                session["user_role"] = user[3]
+                if user[3] == "student":
+                    return redirect(url_for("student_dashboard"))
+                elif user[3] == "counselor":
+                    return redirect(url_for("counselor_dashboard"))
+                elif user[3] == "admin":
+                    return redirect(url_for("admin_dashboard"))
+            else:
+                error = "Invalid email or password."
+        return render_template("login.html", error=error)
+
+    @app.route("/logout")
+    def logout():
+        session.clear()
+        return redirect(url_for("login"))
+
     @app.route("/")
     def home():
         return render_template("index.html")
 
     @app.route("/student/dashboard")
+    @role_required('student')
     def student_dashboard():
         student_id = _get_or_create_dev_student()
         connection = get_connection()
@@ -53,6 +112,7 @@ def register_routes(app):
         return render_template("student_dashboard.html", data=dashboard_data)
 
     @app.route("/student/survey", methods=["GET", "POST"])
+    @role_required('student')
     def student_survey():
         session_id = str(uuid.uuid4())
         if request.method == "POST":
@@ -103,6 +163,7 @@ def register_routes(app):
         return render_template("student_survey.html", questions=questions, result=None)
 
     @app.route("/counselor/dashboard")
+    @role_required('counselor')
     def counselor_dashboard():
         return render_template("counselor_dashboard.html")
 
@@ -115,6 +176,7 @@ def register_routes(app):
         })
 
     @app.route("/admin/dashboard")
+    @role_required('admin')
     def admin_dashboard():
         from flask import current_app
         import routes
