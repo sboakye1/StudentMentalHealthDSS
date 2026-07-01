@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Counseling Note</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('counselor_dashboard') }}">Counselor Dashboard</a>
+        <div class="navbar-nav">
+          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container my-4">
+      <h1 class="mb-4">Edit Counseling Note</h1>
+      <a href="{{ url_for('counselor_student_detail', student_id=data.student_id) }}" class="btn btn-secondary mb-3">Back to Student</a>
+
+      <div class="card">
+        <div class="card-body">
+          <form action="{{ url_for('counselor_edit_note', note_id=data.note_id) }}" method="POST">
+            <div class="mb-3">
+              <label for="note_content" class="form-label">Session Notes</label>
+              <textarea class="form-control" id="note_content" name="note_content" rows="4" required>{{ data.note_content }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label for="session_summary" class="form-label">Session Summary</label>
+              <textarea class="form-control" id="session_summary" name="session_summary" rows="2">{{ data.session_summary }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label for="mood_observed" class="form-label">Mood Observed</label>
+              <input type="text" class="form-control" id="mood_observed" name="mood_observed" value="{{ data.mood_observed }}">
+            </div>
+            <div class="mb-3">
+              <label for="mental_status_assessment" class="form-label">Mental Status Assessment</label>
+              <textarea class="form-control" id="mental_status_assessment" name="mental_status_assessment" rows="2">{{ data.mental_status_assessment }}</textarea>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="follow_up_required" name="follow_up_required" {% if data.follow_up_required %}checked{% endif %}>
+              <label class="form-check-label" for="follow_up_required">Follow-up Required</label>
+            </div>
+            <div class="mb-3">
+              <label for="follow_up_plan" class="form-label">Follow-up Plan</label>
+              <textarea class="form-control" id="follow_up_plan" name="follow_up_plan" rows="2">{{ data.follow_up_plan }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label for="recommended_resources" class="form-label">Recommended Resources</label>
+              <textarea class="form-control" id="recommended_resources" name="recommended_resources" rows="2">{{ data.recommended_resources }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label for="risk_assessment_update" class="form-label">Risk Assessment Update</label>
+              <select class="form-select" id="risk_assessment_update" name="risk_assessment_update">
+                <option value="">No Change</option>
+                <option value="Low" {% if data.risk_assessment_update == 'Low' %}selected{% endif %}>Low</option>
+                <option value="Medium" {% if data.risk_assessment_update == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="High" {% if data.risk_assessment_update == 'High' %}selected{% endif %}>High</option>
+              </select>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="referral_needed" name="referral_needed" {% if data.referral_needed %}checked{% endif %}>
+              <label class="form-check-label" for="referral_needed">Referral Needed</label>
+            </div>
+            <div class="mb-3">
+              <label for="referral_details" class="form-label">Referral Details</label>
+              <textarea class="form-control" id="referral_details" name="referral_details" rows="2">{{ data.referral_details }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

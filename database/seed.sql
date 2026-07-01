@@ -19,3 +19,17 @@ VALUES (@counselor_user_id, 'LIC-001', 'Clinical Psychology', 'Licensed counselo
 -- Student profile (only insert if student doesn't exist)
 INSERT IGNORE INTO students (user_id, student_id_number, major, year, is_at_risk)
 VALUES (@student_user_id, 'STU-2024-001', 'Computer Science', 'Sophomore', FALSE);
+
+-- Assign student to counselor (only insert if not exists)
+SET @counselor_id = (SELECT id FROM counselors WHERE user_id = @counselor_user_id);
+SET @student_id = (SELECT id FROM students WHERE user_id = @student_user_id);
+INSERT IGNORE INTO counselor_assignments (student_id, counselor_id, assignment_date, reason_for_assignment)
+VALUES (@student_id, @counselor_id, CURDATE(), 'Initial assignment');
+
+-- Create sample appointment (only insert if not exists)
+INSERT IGNORE INTO appointments (student_id, counselor_id, appointment_date, duration_minutes, status)
+VALUES (@student_id, @counselor_id, DATE_ADD(NOW(), INTERVAL 2 DAY), 60, 'scheduled');
+
+-- Create sample survey summary for testing (only insert if not exists)
+INSERT IGNORE INTO survey_summary (student_id, risk_level, overall_score, survey_completion_date)
+VALUES (@student_id, 'Medium', 5, CURDATE());
