@@ -14,6 +14,10 @@
       .risk-medium { background-color: #ffc107; color: #333; }
       .risk-high { background-color: #dc3545; }
       .risk-not-assessed { background-color: #6c757d; }
+      .priority-critical { background-color: #dc3545; }
+      .priority-medium { background-color: #ffc107; color: #333; }
+      .priority-low { background-color: #28a745; }
+      .priority-not-assigned { background-color: #6c757d; }
       .stats-row { display: flex; gap: 20px; flex-wrap: wrap; }
       .stat-card { flex: 1; min-width: 150px; text-align: center; }
       .stat-value { font-size: 2rem; font-weight: bold; color: #007bff; }
@@ -40,6 +44,18 @@
       </div>
 
       <div class="card">
+        <h3>Decision Support Recommendation</h3>
+        <p>
+          <strong>Priority:</strong>
+          <span class="risk-badge priority-{{ data.priority|lower|replace(' ', '-') }}">
+            {{ data.priority }}
+          </span>
+        </p>
+        <p><strong>Recommendation:</strong> {{ data.recommendation }}</p>
+        <p><strong>Intervention Required:</strong> {{ 'Yes' if data.intervention_required else 'No' }}</p>
+      </div>
+
+      <div class="card">
         <h3>Statistics</h3>
         <div class="stats-row">
           <div class="stat-card">
@@ -58,8 +74,19 @@
         <div class="actions">
           <a href="{{ url_for('student_survey') }}" class="button">Take New Survey</a>
           <a href="#" class="button">View Survey History</a>
-          <a href="#" class="button">Book Counseling Appointment</a>
+          <a href="{{ url_for('student_appointment') }}" class="button">Request Appointment</a>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>Upcoming Appointment</h3>
+        {% if data.upcoming_appointment %}
+        <p><strong>Date:</strong> {{ data.upcoming_appointment[0].strftime('%Y-%m-%d') if data.upcoming_appointment[0] else 'N/A' }}</p>
+        <p><strong>Time:</strong> {{ data.upcoming_appointment[0].strftime('%H:%M') if data.upcoming_appointment[0] else 'N/A' }}</p>
+        <p><strong>Status:</strong> {{ data.upcoming_appointment[1] or 'Unknown' }}</p>
+        {% else %}
+        <p>No upcoming appointments.</p>
+        {% endif %}
       </div>
 
       <a href="{{ url_for('home') }}" class="button">Back to Home</a>

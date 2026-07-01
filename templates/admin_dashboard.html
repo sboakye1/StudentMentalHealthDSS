@@ -28,7 +28,7 @@
       <h1 class="mb-4">Admin Dashboard</h1>
 
       <div class="row mb-4">
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 col-lg-2 mb-3">
           <div class="card text-white bg-primary">
             <div class="card-body">
               <h5 class="card-title">Total Students</h5>
@@ -36,7 +36,7 @@
             </div>
           </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 col-lg-2 mb-3">
           <div class="card text-white bg-danger">
             <div class="card-body">
               <h5 class="card-title">High Risk</h5>
@@ -44,7 +44,7 @@
             </div>
           </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 col-lg-2 mb-3">
           <div class="card text-dark bg-warning">
             <div class="card-body">
               <h5 class="card-title">Medium Risk</h5>
@@ -52,11 +52,27 @@
             </div>
           </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 col-lg-2 mb-3">
           <div class="card text-white bg-success">
             <div class="card-body">
               <h5 class="card-title">Low Risk</h5>
               <p class="card-number">{{ data.low_risk }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+          <div class="card text-white bg-dark">
+            <div class="card-body">
+              <h5 class="card-title">Critical Cases</h5>
+              <p class="card-number">{{ data.critical_cases }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+          <div class="card text-white bg-info">
+            <div class="card-body">
+              <h5 class="card-title">Need Intervention</h5>
+              <p class="card-number">{{ data.intervention_required }}</p>
             </div>
           </div>
         </div>

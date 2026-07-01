@@ -17,6 +17,9 @@
           <h2>Survey Results</h2>
           <p>Score: {{ result.score }}</p>
           <p>Risk Level: {{ result.risk_level }}</p>
+          <p>Priority: {{ result.priority }}</p>
+          <p>Recommendation: {{ result.recommendation }}</p>
+          <p>Intervention Required: {{ 'Yes' if result.intervention_required else 'No' }}</p>
         </div>
         <a href="{{ url_for('student_survey') }}" class="button">Take Survey Again</a>
       {% else %}

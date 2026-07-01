@@ -27,6 +27,38 @@ def role_required(role):
     return decorator
 
 
+def generate_dss_decision(score):
+    if score <= 2:
+        return {
+            "risk_level": "Low",
+            "priority": "Low",
+            "recommendation": (
+                "Continue self-care; Access online mental health resources; "
+                "Retake survey in two weeks"
+            ),
+            "intervention_required": False,
+        }
+    if score <= 4:
+        return {
+            "risk_level": "Medium",
+            "priority": "Medium",
+            "recommendation": (
+                "Book counseling appointment; Follow up within 7 days; "
+                "Monitor student"
+            ),
+            "intervention_required": False,
+        }
+    return {
+        "risk_level": "High",
+        "priority": "Critical",
+        "recommendation": (
+            "Immediate counseling appointment; Notify counselor; "
+            "Flag student for urgent intervention"
+        ),
+        "intervention_required": True,
+    }
+
+
 def _get_or_create_dev_student():
     connection = get_connection()
     cursor = connection.cursor()
@@ -93,6 +125,13 @@ def register_routes(app):
         cursor = connection.cursor()
         cursor.execute("""
             SELECT u.name, ss.overall_score, ss.risk_level, ss.last_assessment_date,
+                   CASE ss.risk_level
+                       WHEN 'High' THEN 'Critical'
+                       WHEN 'Medium' THEN 'Medium'
+                       WHEN 'Low' THEN 'Low'
+                       ELSE 'Not Assigned'
+                   END AS priority,
+                   ss.recommendations, ss.action_required,
                    (SELECT COUNT(*) FROM survey_responses sr WHERE sr.student_id = %s) as total_surveys
             FROM users u
             JOIN students s ON u.id = s.user_id
@@ -100,6 +139,14 @@ def register_routes(app):
             WHERE s.id = %s
         """, (student_id, student_id))
         result = cursor.fetchone()
+        cursor.execute("""
+            SELECT appointment_date, status
+            FROM appointments
+            WHERE student_id = %s AND appointment_date >= NOW() AND status = 'scheduled'
+            ORDER BY appointment_date ASC
+            LIMIT 1
+        """, (student_id,))
+        upcoming_appointment = cursor.fetchone()
         cursor.close()
         connection.close()
         dashboard_data = {
@@ -107,7 +154,11 @@ def register_routes(app):
             "score": result[1] if result and result[1] else 0,
             "risk_level": result[2] if result and result[2] else "Not Assessed",
             "last_assessment": result[3] if result and result[3] else None,
-            "total_surveys": result[4] if result else 0
+            "priority": result[4] if result and result[4] else "Not Assigned",
+            "recommendation": result[5] if result and result[5] else "Complete a survey to receive a recommendation.",
+            "intervention_required": bool(result[6]) if result else False,
+            "total_surveys": result[7] if result else 0,
+            "upcoming_appointment": upcoming_appointment
         }
         return render_template("student_dashboard.html", data=dashboard_data)
 
@@ -124,12 +175,7 @@ def register_routes(app):
                     question_ids.append(question_id)
                     if value == "yes":
                         score += 1
-            if score <= 2:
-                risk_level = "Low"
-            elif score <= 4:
-                risk_level = "Medium"
-            else:
-                risk_level = "High"
+            decision = generate_dss_decision(score)
             student_id = _get_or_create_dev_student()
             connection = get_connection()
             cursor = connection.cursor()
@@ -139,13 +185,33 @@ def register_routes(app):
             )
             connection.commit()
             cursor.execute(
-                "INSERT INTO survey_summary (student_id, risk_level, overall_score, survey_completion_date) VALUES (%s, %s, %s, CURDATE()) ON DUPLICATE KEY UPDATE risk_level = %s, overall_score = %s, last_assessment_date = CURRENT_TIMESTAMP",
-                (student_id, risk_level, score, risk_level, score)
+                """
+                INSERT INTO survey_summary
+                (student_id, risk_level, overall_score, recommendations, action_required, survey_completion_date)
+                VALUES (%s, %s, %s, %s, %s, CURDATE())
+                ON DUPLICATE KEY UPDATE
+                    risk_level = %s,
+                    overall_score = %s,
+                    recommendations = %s,
+                    action_required = %s,
+                    last_assessment_date = CURRENT_TIMESTAMP
+                """,
+                (
+                    student_id,
+                    decision["risk_level"],
+                    score,
+                    decision["recommendation"],
+                    decision["intervention_required"],
+                    decision["risk_level"],
+                    score,
+                    decision["recommendation"],
+                    decision["intervention_required"],
+                )
             )
             connection.commit()
             cursor.close()
             connection.close()
-            return render_template("student_survey.html", result={"score": score, "risk_level": risk_level})
+            return render_template("student_survey.html", result={"score": score, **decision})
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT id, question_text FROM survey_questions WHERE is_active = TRUE ORDER BY display_order")
@@ -162,6 +228,28 @@ def register_routes(app):
             ]
         return render_template("student_survey.html", questions=questions, result=None)
 
+    @app.route("/student/appointment", methods=["GET", "POST"])
+    @role_required('student')
+    def student_appointment():
+        if request.method == "POST":
+            student_id = _get_or_create_dev_student()
+            preferred_date = request.form.get("preferred_date")
+            preferred_time = request.form.get("preferred_time")
+            appointment_type = request.form.get("appointment_type", "follow_up")
+            reason = request.form.get("reason", "")
+            appointment_datetime = f"{preferred_date} {preferred_time}"
+            connection = get_connection()
+            cursor = connection.cursor()
+            cursor.execute("""
+                INSERT INTO appointments (student_id, counselor_id, appointment_date, appointment_type, status, meeting_notes)
+                VALUES (%s, NULL, %s, %s, 'scheduled', %s)
+            """, (student_id, appointment_datetime, appointment_type, reason))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return redirect(url_for("student_dashboard"))
+        return render_template("student_appointment.html")
+
     @app.route("/counselor/dashboard")
     @role_required('counselor')
     def counselor_dashboard():
@@ -175,15 +263,32 @@ def register_routes(app):
         high_risk = medium_risk = low_risk = 0
         upcoming_appointments = []
         completed_sessions = 0
+        appointment_requests = []
+        my_appointments = []
         if counselor_id:
             cursor.execute("""
-                SELECT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level, ss.last_assessment_date
+                SELECT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
+                       ss.last_assessment_date,
+                       CASE ss.risk_level
+                           WHEN 'High' THEN 'Critical'
+                           WHEN 'Medium' THEN 'Medium'
+                           WHEN 'Low' THEN 'Low'
+                           ELSE 'Not Assigned'
+                       END AS priority,
+                       ss.recommendations
                 FROM students s
                 JOIN users u ON s.user_id = u.id
                 LEFT JOIN survey_summary ss ON s.id = ss.student_id
                 JOIN counselor_assignments ca ON s.id = ca.student_id
                 WHERE ca.counselor_id = %s AND ca.status = 'active'
-                ORDER BY ss.last_assessment_date DESC
+                ORDER BY
+                    CASE ss.risk_level
+                        WHEN 'High' THEN 1
+                        WHEN 'Medium' THEN 2
+                        WHEN 'Low' THEN 3
+                        ELSE 4
+                    END,
+                    ss.last_assessment_date DESC
             """, (counselor_id,))
             assigned_students = cursor.fetchall()
             cursor.execute("""
@@ -215,6 +320,24 @@ def register_routes(app):
                 WHERE counselor_id = %s AND status = 'completed'
             """, (counselor_id,))
             completed_sessions = cursor.fetchone()[0] or 0
+            cursor.execute("""
+                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status
+                FROM appointments a
+                JOIN students s ON a.student_id = s.id
+                JOIN users u ON s.user_id = u.id
+                WHERE a.counselor_id = %s AND a.status = 'scheduled'
+                ORDER BY a.appointment_date ASC
+            """, (counselor_id,))
+            my_appointments = cursor.fetchall()
+        cursor.execute("""
+            SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.meeting_notes
+            FROM appointments a
+            JOIN students s ON a.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            WHERE a.counselor_id IS NULL AND a.status = 'scheduled'
+            ORDER BY a.appointment_date ASC
+        """)
+        appointment_requests = cursor.fetchall()
         cursor.close()
         connection.close()
         counselor_data = {
@@ -224,7 +347,9 @@ def register_routes(app):
             "low_risk_students": low_risk,
             "assigned_students": assigned_students,
             "upcoming_appointments": upcoming_appointments,
-            "completed_sessions": completed_sessions
+            "completed_sessions": completed_sessions,
+            "appointment_requests": appointment_requests,
+            "my_appointments": my_appointments
         }
         return render_template("counselor_dashboard.html", data=counselor_data)
 
@@ -379,6 +504,55 @@ def register_routes(app):
         }
         return render_template("counselor_edit_note.html", data=note_data)
 
+    @app.route("/counselor/appointment/<int:appointment_id>/approve", methods=["POST"])
+    @role_required('counselor')
+    def counselor_approve_appointment(appointment_id):
+        user_id = session.get("user_id")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor = cursor.fetchone()
+        counselor_id = counselor[0] if counselor else None
+        cursor.execute("""
+            UPDATE appointments
+            SET counselor_id = %s
+            WHERE id = %s AND counselor_id IS NULL AND status = 'scheduled'
+        """, (counselor_id, appointment_id))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return redirect(url_for("counselor_dashboard"))
+
+    @app.route("/counselor/appointment/<int:appointment_id>/reject", methods=["POST"])
+    @role_required('counselor')
+    def counselor_reject_appointment(appointment_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE appointments
+            SET status = 'cancelled'
+            WHERE id = %s AND counselor_id IS NULL AND status = 'scheduled'
+        """, (appointment_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return redirect(url_for("counselor_dashboard"))
+
+    @app.route("/counselor/appointment/<int:appointment_id>/complete", methods=["POST"])
+    @role_required('counselor')
+    def counselor_complete_appointment(appointment_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE appointments
+            SET status = 'completed'
+            WHERE id = %s AND status = 'scheduled'
+        """, (appointment_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return redirect(url_for("counselor_dashboard"))
+
     @app.route("/api/health")
     def health_check():
         result = check_database_health()
@@ -390,14 +564,6 @@ def register_routes(app):
     @app.route("/admin/dashboard")
     @role_required('admin')
     def admin_dashboard():
-        from flask import current_app
-        import routes
-        import os
-        print(f"DEBUG view_functions: {list(current_app.view_functions.keys())}")
-        print(f"DEBUG url_map: {list(current_app.url_map.iter_rules())}")
-        print(f"DEBUG routes module path: {routes.__file__}")
-        print(f"DEBUG template_folder: {current_app.template_folder}")
-        print(f"DEBUG template exists: {os.path.exists(os.path.join(current_app.template_folder, 'counselor_dashboard.html'))}")
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT COUNT(*) FROM students")
@@ -408,6 +574,10 @@ def register_routes(app):
         medium_risk = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'Low'")
         low_risk = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'High'")
+        critical_cases = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE action_required = TRUE")
+        intervention_required = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM survey_responses")
         total_surveys = cursor.fetchone()[0]
         cursor.execute("""
@@ -426,6 +596,8 @@ def register_routes(app):
             "high_risk": high_risk,
             "medium_risk": medium_risk,
             "low_risk": low_risk,
+            "critical_cases": critical_cases,
+            "intervention_required": intervention_required,
             "total_surveys": total_surveys,
             "recent_submissions": recent_submissions
         }

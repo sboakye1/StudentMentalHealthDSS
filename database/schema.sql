@@ -137,6 +137,7 @@ CREATE TABLE survey_summary (
     academic_stress_score DECIMAL(10, 2),
     social_isolation_score DECIMAL(10, 2),
     suicidal_ideation_indicator BOOLEAN DEFAULT FALSE,
+    priority ENUM('Low', 'Medium', 'Critical') DEFAULT 'Low',
     recommendations TEXT,
     action_required BOOLEAN DEFAULT FALSE,
     survey_completion_date DATE NOT NULL,

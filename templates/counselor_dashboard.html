@@ -123,6 +123,8 @@
                   <th>Student ID</th>
                   <th>Latest Score</th>
                   <th>Risk Level</th>
+                  <th>Priority</th>
+                  <th>Recommendation</th>
                   <th>Last Assessment</th>
                   <th>Action</th>
                 </tr>
@@ -141,6 +143,16 @@
                       {{ student[4] }}
                     </span>
                   </td>
+                  <td>
+                    <span class="badge 
+                      {% if student[6] == 'Critical' %}bg-danger
+                      {% elif student[6] == 'Medium' %}bg-warning text-dark
+                      {% elif student[6] == 'Low' %}bg-success
+                      {% else %}bg-secondary{% endif %}">
+                      {{ student[6] or 'Not Assigned' }}
+                    </span>
+                  </td>
+                  <td>{{ student[7] or 'No recommendation yet' }}</td>
                   <td>{{ student[5].strftime('%Y-%m-%d') if student[5] else 'N/A' }}</td>
                   <td>
                     <a href="{{ url_for('counselor_student_detail', student_id=student[0]) }}" class="btn btn-sm btn-primary">View</a>
@@ -149,7 +161,92 @@
                 {% endfor %}
                 {% if not data.assigned_students %}
                 <tr>
-                  <td colspan="6" class="text-center">No students assigned yet</td>
+                  <td colspan="8" class="text-center">No students assigned yet</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Appointment Requests</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Reason</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in data.appointment_requests %}
+                <tr>
+                  <td>{{ req[1] }}</td>
+                  <td>{{ req[2].strftime('%Y-%m-%d %H:%M') if req[2] else 'N/A' }}</td>
+                  <td>{{ req[3] }}</td>
+                  <td>{{ req[4] }}</td>
+                  <td>
+                    <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" style="display:inline;">
+                      <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                    </form>
+                    <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" style="display:inline;">
+                      <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+                {% if not data.appointment_requests %}
+                <tr>
+                  <td colspan="5" class="text-center">No appointment requests</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">My Scheduled Appointments</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for appt in data.my_appointments %}
+                <tr>
+                  <td>{{ appt[1] }}</td>
+                  <td>{{ appt[2].strftime('%Y-%m-%d %H:%M') if appt[2] else 'N/A' }}</td>
+                  <td>{{ appt[3] }}</td>
+                  <td>{{ appt[4] }}</td>
+                  <td>
+                    <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST">
+                      <button type="submit" class="btn btn-sm btn-primary">Complete Session</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+                {% if not data.my_appointments %}
+                <tr>
+                  <td colspan="5" class="text-center">No scheduled appointments</td>
                 </tr>
                 {% endif %}
               </tbody>
