@@ -5,127 +5,864 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Dashboard - Student Mental Health DSS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      .risk-high { background-color: #dc3545; }
-      .risk-medium { background-color: #ffc107; color: #333; }
-      .risk-low { background-color: #28a745; }
-      .card-number { font-size: 2.5rem; font-weight: bold; }
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: rgba(30, 41, 59, 0.7);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent-blue: #3b82f6;
+        --accent-cyan: #06b6d4;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --accent-violet: #8b5cf6;
+        --border-color: rgba(148, 163, 184, 0.15);
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+        z-index: -1;
+        animation: bgShift 20s ease-in-out infinite alternate;
+      }
+
+      @keyframes bgShift {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(-5%, -5%) rotate(3deg); }
+      }
+
+      .navbar {
+        background: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-link {
+        color: var(--text-secondary) !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: color 0.2s ease;
+        margin-left: 1rem;
+      }
+
+      .nav-link:hover {
+        color: var(--text-primary) !important;
+      }
+
+      .container {
+        max-width: 1400px;
+      }
+
+      .dashboard-header {
+        padding: 2rem 0 1rem;
+        position: relative;
+      }
+
+      .dashboard-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.25rem;
+      }
+
+      .dashboard-header p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .kpi-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+      }
+
+      .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+      .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+      .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+      .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+      .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+      .kpi-card:nth-child(6) { animation-delay: 0.3s; }
+
+      .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        border-radius: 16px 16px 0 0;
+      }
+
+      .kpi-card.total::before { background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); }
+      .kpi-card.high::before { background: linear-gradient(90deg, var(--accent-rose), #fb7185); }
+      .kpi-card.medium::before { background: linear-gradient(90deg, var(--accent-amber), #fbbf24); }
+      .kpi-card.low::before { background: linear-gradient(90deg, var(--accent-green), #34d399); }
+      .kpi-card.critical::before { background: linear-gradient(90deg, #7c3aed, var(--accent-violet)); }
+      .kpi-card.intervention::before { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+      .kpi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .kpi-card.total .kpi-icon { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+      .kpi-card.high .kpi-icon { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+      .kpi-card.medium .kpi-icon { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+      .kpi-card.low .kpi-icon { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+      .kpi-card.critical .kpi-icon { background: rgba(139, 92, 246, 0.15); color: var(--accent-violet); }
+      .kpi-card.intervention .kpi-icon { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+
+      .kpi-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .kpi-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .appt-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .appt-stat-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+      }
+
+      .appt-stat-card:nth-child(1) { animation-delay: 0.1s; }
+      .appt-stat-card:nth-child(2) { animation-delay: 0.2s; }
+      .appt-stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+      .appt-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .appt-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .appt-stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-top: 0.25rem;
+      }
+
+      .appt-stat-card.scheduled .appt-stat-value { color: var(--accent-blue); }
+      .appt-stat-card.completed .appt-stat-value { color: var(--accent-green); }
+      .appt-stat-card.cancelled .appt-stat-value { color: var(--accent-rose); }
+
+      .chart-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+      }
+
+      .chart-card:nth-of-type(1) { animation-delay: 0.1s; }
+      .chart-card:nth-of-type(2) { animation-delay: 0.2s; }
+
+      .chart-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+      }
+
+      .chart-card h5 {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .chart-card h5 .icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+      }
+
+      .chart-card.pie h5 .icon { background: rgba(139, 92, 246, 0.15); color: var(--accent-violet); }
+      .chart-card.bar h5 .icon { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 300px;
+      }
+
+      .chart-container.pie-chart {
+        height: 280px;
+        max-width: 320px;
+        margin: 0 auto;
+      }
+
+      .chart-container.bar-chart {
+        height: 300px;
+      }
+
+      .data-table-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+        animation-delay: 0.3s;
+        overflow: hidden;
+      }
+
+      .data-table-card h5 {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .data-table-card h5 .icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+      }
+
+      .data-table-card.counselor h5 .icon { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+      .data-table-card.critical h5 .icon { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+
+      .table {
+        color: var(--text-primary);
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      .table thead th {
+        background: rgba(15, 23, 42, 0.6);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+      }
+
+      .table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        vertical-align: middle;
+      }
+
+      .table tbody tr {
+        transition: background 0.2s ease;
+      }
+
+      .table tbody tr:hover {
+        background: rgba(148, 163, 184, 0.05);
+      }
+
+      .table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .badge-risk {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-risk.high { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+      .badge-risk.medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+      .badge-risk.low { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+      .badge-risk.critical { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
+
+      .table-responsive {
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      @media (max-width: 991px) {
+        .charts-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .recent-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.6s ease forwards;
+        animation-delay: 0.35s;
+        opacity: 0;
+      }
+
+      .recent-card h5 {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.4rem;
+        animation: pulse 2s infinite;
+      }
+
+      .pulse-dot.high { background: var(--accent-rose); }
+      .pulse-dot.medium { background: var(--accent-amber); }
+      .pulse-dot.low { background: var(--accent-green); }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+      }
+
+      .score-bar {
+        width: 60px;
+        height: 6px;
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .score-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+      }
+
+      .score-bar-fill.high { background: linear-gradient(90deg, var(--accent-rose), #fb7185); }
+      .score-bar-fill.medium { background: linear-gradient(90deg, var(--accent-amber), #fbbf24); }
+      .score-bar-fill.low { background: linear-gradient(90deg, var(--accent-green), #34d399); }
     </style>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg">
       <div class="container">
-        <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
-        <div class="navbar-nav">
-          <a class="nav-link" href="{{ url_for('student_dashboard') }}">Student Dashboard</a>
-          <a class="nav-link" href="{{ url_for('counselor_dashboard') }}">Counselor Dashboard</a>
+        <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+          <span style="margin-right: 0.5rem;">&#x1F3E5;</span> Admin Dashboard
+        </a>
+        <div class="navbar-nav ms-auto">
+          <a class="nav-link" href="{{ url_for('student_dashboard') }}">Student</a>
+          <a class="nav-link" href="{{ url_for('counselor_dashboard') }}">Counselor</a>
           <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
         </div>
       </div>
     </nav>
 
-    <main class="container my-4">
-      <h1 class="mb-4">Admin Dashboard</h1>
+    <main class="container">
+      <div class="dashboard-header">
+        <h1>Reports & Analytics</h1>
+        <p>Real-time system insights and decision support metrics</p>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card total">
+          <div class="kpi-icon">&#x1F465;</div>
+          <div class="kpi-label">Total Students</div>
+          <div class="kpi-value">{{ data.total_students }}</div>
+        </div>
+        <div class="kpi-card high">
+          <div class="kpi-icon">&#x26A0;&#xFE0F;</div>
+          <div class="kpi-label">High Risk</div>
+          <div class="kpi-value">{{ data.high_risk }}</div>
+        </div>
+        <div class="kpi-card medium">
+          <div class="kpi-icon">&#x1F4C8;</div>
+          <div class="kpi-label">Medium Risk</div>
+          <div class="kpi-value">{{ data.medium_risk }}</div>
+        </div>
+        <div class="kpi-card low">
+          <div class="kpi-icon">&#x2705;</div>
+          <div class="kpi-label">Low Risk</div>
+          <div class="kpi-value">{{ data.low_risk }}</div>
+        </div>
+        <div class="kpi-card critical">
+          <div class="kpi-icon">&#x1F6A8;</div>
+          <div class="kpi-label">Critical Cases</div>
+          <div class="kpi-value">{{ data.critical_cases }}</div>
+        </div>
+        <div class="kpi-card intervention">
+          <div class="kpi-icon">&#x1F4E9;</div>
+          <div class="kpi-label">Need Intervention</div>
+          <div class="kpi-value">{{ data.intervention_required }}</div>
+        </div>
+      </div>
+
+      <div class="appt-stats-grid" id="appointment-stats">
+        <div class="appt-stat-card scheduled">
+          <div class="appt-stat-value" id="stat-scheduled">-</div>
+          <div class="appt-stat-label">Scheduled</div>
+        </div>
+        <div class="appt-stat-card completed">
+          <div class="appt-stat-value" id="stat-completed">-</div>
+          <div class="appt-stat-label">Completed</div>
+        </div>
+        <div class="appt-stat-card cancelled">
+          <div class="appt-stat-value" id="stat-cancelled">-</div>
+          <div class="appt-stat-label">Cancelled</div>
+        </div>
+      </div>
 
       <div class="row mb-4">
-        <div class="col-md-4 col-lg-2 mb-3">
-          <div class="card text-white bg-primary">
-            <div class="card-body">
-              <h5 class="card-title">Total Students</h5>
-              <p class="card-number">{{ data.total_students }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 col-lg-2 mb-3">
-          <div class="card text-white bg-danger">
-            <div class="card-body">
-              <h5 class="card-title">High Risk</h5>
-              <p class="card-number">{{ data.high_risk }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 col-lg-2 mb-3">
-          <div class="card text-dark bg-warning">
-            <div class="card-body">
-              <h5 class="card-title">Medium Risk</h5>
-              <p class="card-number">{{ data.medium_risk }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 col-lg-2 mb-3">
-          <div class="card text-white bg-success">
-            <div class="card-body">
-              <h5 class="card-title">Low Risk</h5>
-              <p class="card-number">{{ data.low_risk }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 col-lg-2 mb-3">
-          <div class="card text-white bg-dark">
-            <div class="card-body">
-              <h5 class="card-title">Critical Cases</h5>
-              <p class="card-number">{{ data.critical_cases }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 col-lg-2 mb-3">
-          <div class="card text-white bg-info">
-            <div class="card-body">
-              <h5 class="card-title">Need Intervention</h5>
-              <p class="card-number">{{ data.intervention_required }}</p>
-            </div>
+        <div class="col-md-4">
+          <div class="chart-card" style="margin-bottom: 1.5rem;">
+            <h5><span class="icon">&#x1F4CA;</span> Total Surveys Completed</h5>
+            <p class="kpi-value" style="margin-bottom: 0;">{{ data.total_surveys }}</p>
           </div>
         </div>
       </div>
 
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Recent Survey Submissions</h5>
+      <div class="charts-row">
+        <div class="chart-card pie">
+          <h5><span class="icon">&#x1F4CA;</span> Risk Distribution</h5>
+          <div class="chart-container pie-chart">
+            <canvas id="riskPieChart"></canvas>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                  <th>Survey Date</th>
-                  <th>Risk Level</th>
-                  <th>Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for submission in data.recent_submissions %}
-                <tr>
-                  <td>{{ submission[0] }}</td>
-                  <td>{{ submission[1].strftime('%Y-%m-%d') if submission[1] else 'N/A' }}</td>
-                  <td>
-                    <span class="badge 
-                      {% if submission[2] == 'High' %}bg-danger
-                      {% elif submission[2] == 'Medium' %}bg-warning text-dark
-                      {% else %}bg-success{% endif %}">
-                      {{ submission[2] }}
-                    </span>
-                  </td>
-                  <td>{{ submission[3] }}</td>
-                </tr>
-                {% endfor %}
-                {% if not data.recent_submissions %}
-                <tr>
-                  <td colspan="4" class="text-center">No survey submissions yet</td>
-                </tr>
-                {% endif %}
-              </tbody>
-            </table>
+        <div class="chart-card bar">
+          <h5><span class="icon">&#x1F4C5;</span> Monthly Completed Surveys</h5>
+          <div class="chart-container bar-chart">
+            <canvas id="monthlyBarChart"></canvas>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Total Surveys Completed</h5>
-          <p class="card-number">{{ data.total_surveys }}</p>
+      <div class="data-table-card counselor">
+        <h5><span class="icon">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span> Counselor Workload</h5>
+        <div class="table-responsive">
+          <table class="table" id="counselorTable">
+            <thead>
+              <tr>
+                <th>Counselor Name</th>
+                <th>Assigned Students</th>
+                <th>Scheduled Appointments</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="3" class="empty-state">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="data-table-card critical">
+        <h5><span class="icon">&#x1F6A8;</span> Critical Cases</h5>
+        <div class="table-responsive">
+          <table class="table" id="criticalTable">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Student ID</th>
+                <th>Email</th>
+                <th>Score</th>
+                <th>Last Assessment</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="recent-card">
+        <h5>&#x1F4CB; Recent Survey Submissions</h5>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Survey Date</th>
+                <th>Risk Level</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for submission in data.recent_submissions %}
+              <tr>
+                <td>{{ submission[0] }}</td>
+                <td>{{ submission[1].strftime('%Y-%m-%d') if submission[1] else 'N/A' }}</td>
+                <td>
+                  <span class="badge badge-risk
+                    {% if submission[2] == 'High' %}high
+                    {% elif submission[2] == 'Medium' %}medium
+                    {% else %}low{% endif %}">
+                    <span class="pulse-dot
+                      {% if submission[2] == 'High' %}high
+                      {% elif submission[2] == 'Medium' %}medium
+                      {% else %}low{% endif %}"></span>
+                    {{ submission[2] }}
+                  </span>
+                </td>
+                <td>
+                  {% set risk = submission[2] %}
+                  {% set score = submission[3] if submission[3] is not none else 0 %}
+                  <span style="font-weight: 600;">{{ score }}</span>
+                  <div class="score-bar">
+                    <div class="score-bar-fill {{ risk.lower() if risk else 'low' }}" style="width: {{ (score * 10 if score else 0) }}%;"></div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+              {% if not data.recent_submissions %}
+              <tr><td colspan="4" class="empty-state">No survey submissions yet</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
+
+    <script>
+      const chartDefaults = {
+        color: '#94a3b8',
+        borderColor: 'rgba(148, 163, 184, 0.15)',
+      };
+
+      Chart.defaults.color = chartDefaults.color;
+      Chart.defaults.borderColor = chartDefaults.borderColor;
+      Chart.defaults.font.family = "'Inter', sans-serif";
+
+      Chart.defaults.plugins.tooltip.callbacks.label = function(ctx) {
+        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+        const value = ctx.raw;
+        const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+        return ` ${ctx.label}: ${value} (${pct}%)`;
+      };
+
+      (function initCharts() {
+        const COLORS = {
+          blue: '#3b82f6',
+          cyan: '#06b6d4',
+          green: '#10b981',
+          amber: '#f59e0b',
+          rose: '#f43f5e',
+          violet: '#8b5cf6',
+          slate: '#64748b'
+        };
+
+        fetch('/api/admin/risk-distribution')
+          .then(res => res.json())
+          .then(data => {
+            const labels = ['Low Risk', 'Medium Risk', 'High Risk'];
+            const values = [data.Low || 0, data.Medium || 0, data.High || 0];
+            new Chart(document.getElementById('riskPieChart'), {
+              type: 'pie',
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: values,
+                  backgroundColor: [COLORS.green + 'dd', COLORS.amber + 'dd', COLORS.rose + 'dd'],
+                  borderColor: [COLORS.green, COLORS.amber, COLORS.rose],
+                  borderWidth: 2,
+                  hoverBorderWidth: 3,
+                  hoverBorderColor: '#fff',
+                  hoverOffset: 8
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: 'circle',
+                      font: { size: 12, weight: '500' }
+                    }
+                  }
+                },
+                animation: {
+                  animateScale: true,
+                  animateRotate: true,
+                  duration: 1200,
+                  easing: 'easeInOutQuart'
+                }
+              }
+            });
+          });
+
+        fetch('/api/admin/monthly-surveys')
+          .then(res => res.json())
+          .then(data => {
+            const analytics = data.monthly_completed_surveys || {};
+            const labels = analytics.labels || [];
+            const values = analytics.values || [];
+            new Chart(document.getElementById('monthlyBarChart'), {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Completed Surveys',
+                  data: values,
+                  backgroundColor: values.map((_, i) => {
+                    const colors = [COLORS.cyan, COLORS.blue, COLORS.violet, COLORS.green, COLORS.amber, COLORS.rose];
+                    const idx = i % colors.length;
+                    return colors[idx] + 'cc';
+                  }),
+                  borderColor: values.map((_, i) => {
+                    const colors = [COLORS.cyan, COLORS.blue, COLORS.violet, COLORS.green, COLORS.amber, COLORS.rose];
+                    const idx = i % colors.length;
+                    return colors[idx];
+                  }),
+                  borderWidth: 2,
+                  borderRadius: 8,
+                  borderSkipped: false,
+                  maxBarThickness: 48,
+                  hoverBackgroundColor: values.map((_, i) => {
+                    const colors = [COLORS.cyan, COLORS.blue, COLORS.violet, COLORS.green, COLORS.amber, COLORS.rose];
+                    const idx = i % colors.length;
+                    return colors[idx];
+                  })
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1,
+                      font: { size: 11 }
+                    },
+                    grid: {
+                      color: 'rgba(148, 163, 184, 0.08)'
+                    }
+                  },
+                  x: {
+                    grid: { display: false },
+                    ticks: {
+                      font: { size: 11 }
+                    }
+                  }
+                },
+                animation: {
+                  duration: 1000,
+                  easing: 'easeInOutQuart'
+                }
+              }
+            });
+          });
+
+        fetch('/api/admin/appointment-stats')
+          .then(res => res.json())
+          .then(data => {
+            const scheduled = data.scheduled || 0;
+            const completed = data.completed || 0;
+            const cancelled = data.cancelled || 0;
+            document.getElementById('stat-scheduled').textContent = scheduled;
+            document.getElementById('stat-completed').textContent = completed;
+            document.getElementById('stat-cancelled').textContent = cancelled;
+          })
+          .catch(() => {
+            document.getElementById('stat-scheduled').textContent = '-';
+            document.getElementById('stat-completed').textContent = '-';
+            document.getElementById('stat-cancelled').textContent = '-';
+          });
+
+        function renderCounselorTable(data) {
+          const tbody = document.querySelector('#counselorTable tbody');
+          if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No counselors found</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.map(row => `
+            <tr>
+              <td style="font-weight: 600;">${row.counselor_name}</td>
+              <td><span style="color: ${COLORS.blue}; font-weight: 600;">${row.assigned_students}</span></td>
+              <td><span style="color: ${COLORS.green}; font-weight: 600;">${row.scheduled_appointments}</span></td>
+            </tr>
+          `).join('');
+        }
+
+        function renderCriticalTable(data) {
+          const tbody = document.querySelector('#criticalTable tbody');
+          if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No critical cases at this time</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.map(row => {
+            const riskClass = 'critical';
+            const dateStr = row.last_assessment_date ? row.last_assessment_date.slice(0, 10) : 'N/A';
+            return `
+              <tr>
+                <td style="font-weight: 600;">${row.name}</td>
+                <td style="font-family: monospace; color: ${COLORS.slate};">${row.student_id_number || 'N/A'}</td>
+                <td style="color: ${COLORS.blue};">${row.email || 'N/A'}</td>
+                <td><strong>${row.overall_score !== null ? row.overall_score.toFixed(1) : 'N/A'}</strong></td>
+                <td>${dateStr}</td>
+                <td><span class="badge badge-risk ${riskClass}">Critical</span></td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        fetch('/api/admin/counselor-workload')
+          .then(res => res.json())
+          .then(data => renderCounselorTable(data));
+
+        fetch('/api/admin/critical-cases')
+          .then(res => res.json())
+          .then(data => renderCriticalTable(data));
+      })();
+    </script>
   </body>
 </html>

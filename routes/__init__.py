@@ -1,7 +1,8 @@
-from flask import render_template, jsonify, request, session, redirect, url_for, abort
+from flask import render_template, jsonify, request, session, redirect, url_for, abort, flash
 from database import check_database_health, get_connection
 import uuid
 from functools import wraps
+from datetime import datetime
 
 
 def login_required(f):
@@ -20,8 +21,8 @@ def role_required(role):
             if "user_id" not in session:
                 return redirect(url_for("login"))
             if session.get("user_role") != role:
-                expected_dashboard = f"{role}_dashboard"
-                return redirect(url_for(expected_dashboard))
+                flash("You are not authorized to access that page. Please log in with the correct account.", "danger")
+                return redirect(url_for("login"))
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -602,3 +603,139 @@ def register_routes(app):
             "recent_submissions": recent_submissions
         }
         return render_template("admin_dashboard.html", data=admin_data)
+
+    @app.route("/api/admin/risk-distribution")
+    @role_required('admin')
+    def api_risk_distribution():
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT risk_level, COUNT(*) 
+            FROM survey_summary 
+            GROUP BY risk_level
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        counts = {"Low": 0, "Medium": 0, "High": 0}
+        for risk_level, count in rows:
+            counts[risk_level] = count
+        return jsonify(counts)
+
+    @app.route("/api/admin/monthly-surveys")
+    @role_required('admin')
+    def api_monthly_surveys():
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT DATE_FORMAT(survey_completion_date, '%%Y-%%m') as month_key, COUNT(*) as survey_count
+            FROM survey_summary
+            WHERE survey_completion_date >= DATE_SUB(DATE_FORMAT(NOW(), '%%Y-%%m-01'), INTERVAL 5 MONTH)
+            GROUP BY month_key
+            ORDER BY month_key ASC
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        counts = {row[0]: row[1] for row in rows}
+
+        now = datetime.now()
+        labels = []
+        values = []
+        for i in range(5, -1, -1):
+            month = now.month - i
+            year = now.year
+            while month <= 0:
+                month += 12
+                year -= 1
+            month_key = f"{year:04d}-{month:02d}"
+            dt = datetime(year, month, 1)
+            labels.append(dt.strftime('%b %Y'))
+            values.append(counts.get(month_key, 0))
+
+        return jsonify({
+            "monthly_completed_surveys": {
+                "labels": labels,
+                "values": values
+            }
+        })
+
+    @app.route("/api/admin/appointment-stats")
+    @role_required('admin')
+    def api_appointment_stats():
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT status, COUNT(*) 
+            FROM appointments 
+            GROUP BY status
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        stats = {
+            "scheduled": 0,
+            "completed": 0,
+            "cancelled": 0
+        }
+        for status, count in rows:
+            if status in stats:
+                stats[status] = count
+        return jsonify(stats)
+
+    @app.route("/api/admin/counselor-workload")
+    @role_required('admin')
+    def api_counselor_workload():
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT 
+                u.name AS counselor_name,
+                COUNT(DISTINCT CASE WHEN ca.status = 'active' THEN ca.student_id END) AS assigned_students,
+                COUNT(DISTINCT CASE WHEN a.status = 'scheduled' THEN a.id END) AS scheduled_appointments
+            FROM counselors c
+            JOIN users u ON c.user_id = u.id
+            LEFT JOIN counselor_assignments ca ON c.id = ca.counselor_id
+            LEFT JOIN appointments a ON c.id = a.counselor_id AND a.appointment_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY c.id, u.name
+            ORDER BY assigned_students DESC
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        workload = []
+        for row in rows:
+            workload.append({
+                "counselor_name": row[0],
+                "assigned_students": row[1] or 0,
+                "scheduled_appointments": row[2] or 0
+            })
+        return jsonify(workload)
+
+    @app.route("/api/admin/critical-cases")
+    @role_required('admin')
+    def api_critical_cases():
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT u.name, u.email, s.student_id_number, ss.overall_score, ss.last_assessment_date, ss.suicidal_ideation_indicator
+            FROM survey_summary ss
+            JOIN students s ON ss.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            WHERE ss.priority = 'Critical'
+            ORDER BY ss.last_assessment_date DESC
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        cases = []
+        for row in rows:
+            cases.append({
+                "name": row[0],
+                "email": row[1],
+                "student_id_number": row[2],
+                "overall_score": float(row[3]) if row[3] else None,
+                "last_assessment_date": row[4].isoformat() if row[4] else None,
+                "suicidal_ideation_indicator": bool(row[5])
+            })
+        return jsonify(cases)
