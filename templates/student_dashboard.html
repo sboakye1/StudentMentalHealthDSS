@@ -3,94 +3,478 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Student Dashboard - Student Mental Health DSS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      .dashboard-grid { display: grid; gap: 20px; margin-top: 20px; }
-      .card { background: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-      .card h3 { margin-top: 0; color: #333; }
-      .risk-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: bold; color: white; }
-      .risk-low { background-color: #28a745; }
-      .risk-medium { background-color: #ffc107; color: #333; }
-      .risk-high { background-color: #dc3545; }
-      .risk-not-assessed { background-color: #6c757d; }
-      .priority-critical { background-color: #dc3545; }
-      .priority-medium { background-color: #ffc107; color: #333; }
-      .priority-low { background-color: #28a745; }
-      .priority-not-assigned { background-color: #6c757d; }
-      .stats-row { display: flex; gap: 20px; flex-wrap: wrap; }
-      .stat-card { flex: 1; min-width: 150px; text-align: center; }
-      .stat-value { font-size: 2rem; font-weight: bold; color: #007bff; }
-      .actions { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
-      .actions .button { flex: 1; min-width: 200px; text-align: center; }
+      :root {
+        --bg-primary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --border-color: #e2e8f0;
+        --accent-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #ef4444;
+        --accent-violet: #7c3aed;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 0;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        color: var(--accent-blue) !important;
+        font-size: 1.1rem;
+      }
+
+      .nav-link {
+        color: var(--text-secondary) !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+      }
+
+      .nav-link:hover { 
+        color: var(--accent-blue) !important; 
+        background: rgba(37, 99, 235, 0.08);
+      }
+
+      .dashboard-header {
+        padding: 2rem 0 1.5rem;
+      }
+
+      .dashboard-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .dashboard-header p {
+        color: var(--text-secondary);
+        margin-bottom: 0;
+        font-size: 0.95rem;
+      }
+
+      .welcome-card {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+      }
+
+      .welcome-card h2 {
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .welcome-card p {
+        opacity: 0.9;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .btn-light {
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--accent-blue);
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-light:hover {
+        background: #fff;
+        color: #1d4ed8;
+        transform: translateY(-1px);
+      }
+
+      .btn-outline-light {
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.7);
+      }
+
+      .summary-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.25rem;
+        height: 100%;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+      }
+
+      .summary-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+      }
+
+      .summary-card .label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .summary-card .value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+      }
+
+      .summary-card .subtext {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .badge-risk {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-risk.low { background: #dcfce7; color: #15803d; }
+      .badge-risk.medium { background: #fef3c7; color: #92400e; }
+      .badge-risk.high { background: #fee2e2; color: #991b1b; }
+      .badge-risk.critical { background: #fee2e2; color: #991b1b; }
+      .badge-risk.not-assessed { background: #f1f5f9; color: #475569; }
+
+      .badge-priority {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-priority.low { background: #dcfce7; color: #15803d; }
+      .badge-priority.medium { background: #fef3c7; color: #92400e; }
+      .badge-priority.critical { background: #fee2e2; color: #991b1b; }
+      .badge-priority.not-assigned { background: #f1f5f9; color: #475569; }
+
+      .content-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.25rem;
+        height: 100%;
+      }
+
+      .content-card h5 {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        gap: 1rem;
+      }
+
+      .info-row:last-child { border-bottom: none; }
+
+      .info-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .info-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        text-align: right;
+        word-break: break-word;
+      }
+
+      .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .action-btn {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem;
+        text-decoration: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        text-align: center;
+      }
+
+      .action-btn:hover {
+        border-color: var(--accent-blue);
+        color: var(--accent-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.08);
+      }
+
+      .action-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+      }
+
+      .action-icon.survey { background: #eff6ff; color: var(--accent-blue); }
+      .action-icon.appointment { background: #f0fdf4; color: var(--accent-green); }
+      .action-icon.logout { background: #fef2f2; color: var(--accent-rose); }
+
+      .appointment-card {
+        background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+        border: 1px solid #bbf7d0;
+        border-radius: 14px;
+        padding: 1.25rem;
+      }
+
+      .appointment-card h5 {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+        color: #065f46;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 1.5rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .next-steps-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .next-steps-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .next-steps-list li:last-child { border-bottom: none; }
     </style>
   </head>
   <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('student_dashboard') }}">
+          <span style="margin-right: 0.5rem;">&#x1F3E5;</span> Student Portal
+        </a>
+        <div class="navbar-nav ms-auto gap-3">
+          <a class="nav-link" href="{{ url_for('student_dashboard') }}">Dashboard</a>
+          <a class="nav-link" href="{{ url_for('student_survey') }}">Survey</a>
+          <a class="nav-link" href="{{ url_for('student_appointment') }}">Appointment</a>
+          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+      </div>
+    </nav>
+
     <main class="container">
-      <h1>Student Dashboard</h1>
-      <p>Welcome, {{ data.name }}!</p>
-
-      <div class="card">
-        <h3>Current Risk Assessment</h3>
-        <span class="risk-badge risk-{{ data.risk_level|lower|replace(' ', '-') }}">
-          {{ data.risk_level }}
-        </span>
-        <p><strong>Latest Score:</strong> {{ data.score }}</p>
-        {% if data.last_assessment %}
-        <p><strong>Last Assessment:</strong> {{ data.last_assessment.strftime('%Y-%m-%d %H:%M') }}</p>
-        {% else %}
-        <p><strong>Last Assessment:</strong> No assessment yet</p>
-        {% endif %}
+      <div class="dashboard-header">
+        <h1>Student Dashboard</h1>
+        <p>Welcome back, {{ data.name }}. Here is your mental wellness overview.</p>
       </div>
 
-      <div class="card">
-        <h3>Decision Support Recommendation</h3>
-        <p>
-          <strong>Priority:</strong>
-          <span class="risk-badge priority-{{ data.priority|lower|replace(' ', '-') }}">
-            {{ data.priority }}
-          </span>
-        </p>
-        <p><strong>Recommendation:</strong> {{ data.recommendation }}</p>
-        <p><strong>Intervention Required:</strong> {{ 'Yes' if data.intervention_required else 'No' }}</p>
-      </div>
-
-      <div class="card">
-        <h3>Statistics</h3>
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-value">{{ data.total_surveys }}</div>
-            <div>Total Surveys Completed</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-3">
+          <div class="summary-card">
+            <div class="label">Risk Level</div>
+            <div class="value">
+              <span class="badge badge-risk {{ data.risk_level|lower|replace(' ', '-') }}">
+                {{ data.risk_level }}
+              </span>
+            </div>
+            <div class="subtext">Based on latest assessment</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-value">{{ data.score }}</div>
-            <div>Current Score</div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="summary-card">
+            <div class="label">Priority</div>
+            <div class="value">
+              <span class="badge-priority {{ data.priority|lower|replace(' ', '-') }}">
+                {{ data.priority }}
+              </span>
+            </div>
+            <div class="subtext">Recommended action level</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="summary-card">
+            <div class="label">Recommendation</div>
+            <div class="value" style="font-size: 0.95rem;">
+              {{ data.recommendation[:60] }}{% if data.recommendation|length > 60 %}...{% endif %}
+            </div>
+            <div class="subtext">Based on latest assessment</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="summary-card">
+            <div class="label">Intervention Required</div>
+            <div class="value">
+              {% if data.intervention_required %}
+                <span style="color: #dc2626; font-weight: 700;">Yes</span>
+              {% else %}
+                <span style="color: #16a34a; font-weight: 700;">No</span>
+              {% endif %}
+            </div>
+            <div class="subtext">Action needed</div>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <h3>Quick Actions</h3>
-        <div class="actions">
-          <a href="{{ url_for('student_survey') }}" class="button">Take New Survey</a>
-          <a href="#" class="button">View Survey History</a>
-          <a href="{{ url_for('student_appointment') }}" class="button">Request Appointment</a>
+      <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+          <div class="content-card">
+            <h5>&#x1F4CA; DSS Summary & Recommendation</h5>
+            <div class="info-row">
+              <span class="info-label">Risk Level</span>
+              <span class="info-value">
+                <span class="badge badge-risk {{ data.risk_level|lower|replace(' ', '-') }}">{{ data.risk_level }}</span>
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Priority</span>
+              <span class="info-value">
+                <span class="badge-priority {{ data.priority|lower|replace(' ', '-') }}">{{ data.priority }}</span>
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Current Score</span>
+              <span class="info-value">{{ data.score }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Surveys Completed</span>
+              <span class="info-value">{{ data.total_surveys }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Last Assessment</span>
+              <span class="info-value">
+                {{ data.last_assessment.strftime('%Y-%m-%d %H:%M') if data.last_assessment else 'Not yet assessed' }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Intervention Required</span>
+              <span class="info-value">
+                {% if data.intervention_required %}
+                  <span style="color: #dc2626; font-weight: 700;">Yes</span>
+                {% else %}
+                  <span style="color: #16a34a; font-weight: 700;">No</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Recommendation</span>
+              <span class="info-value" style="text-align: right;">{{ data.recommendation }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="content-card mb-3">
+            <h5>&#x1F4C5; Upcoming Appointment</h5>
+            {% if data.upcoming_appointment %}
+              <div class="appointment-card">
+                <div class="row g-3">
+                  <div class="col-sm-4">
+                    <div class="info-label">Date</div>
+                    <div class="info-value" style="text-align: left; max-width: 100%;">
+                      {{ data.upcoming_appointment[0].strftime('%Y-%m-%d') if data.upcoming_appointment[0] else 'N/A' }}
+                    </div>
+                  </div>
+                  <div class="col-sm-4">
+                    <div class="info-label">Time</div>
+                    <div class="info-value" style="text-align: left; max-width: 100%;">
+                      {{ data.upcoming_appointment[0].strftime('%H:%M') if data.upcoming_appointment[0] else 'N/A' }}
+                    </div>
+                  </div>
+                  <div class="col-sm-4">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" style="text-align: left; max-width: 100%;">
+                      {{ data.upcoming_appointment[1] or 'Unknown' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% else %}
+              <div class="empty-state">No upcoming appointments scheduled.</div>
+            {% endif %}
+          </div>
+          <div class="content-card mt-3">
+            <h5>&#x1F4F0; What You Can Do Next</h5>
+            <ul class="next-steps-list">
+              <li>Retake the survey to track your progress over time.</li>
+              <li>Request an appointment if you want to speak with a counselor.</li>
+              <li>Review your recommendation and follow the suggested next steps.</li>
+              <li>Use the top navigation to access Survey, Appointment, or Dashboard anytime.</li>
+            </ul>
+          </div>
         </div>
       </div>
-
-      <div class="card">
-        <h3>Upcoming Appointment</h3>
-        {% if data.upcoming_appointment %}
-        <p><strong>Date:</strong> {{ data.upcoming_appointment[0].strftime('%Y-%m-%d') if data.upcoming_appointment[0] else 'N/A' }}</p>
-        <p><strong>Time:</strong> {{ data.upcoming_appointment[0].strftime('%H:%M') if data.upcoming_appointment[0] else 'N/A' }}</p>
-        <p><strong>Status:</strong> {{ data.upcoming_appointment[1] or 'Unknown' }}</p>
-        {% else %}
-        <p>No upcoming appointments.</p>
-        {% endif %}
-      </div>
-
-      <a href="{{ url_for('home') }}" class="button">Back to Home</a>
-       <a href="{{ url_for('logout') }}" class="button">Logout</a>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

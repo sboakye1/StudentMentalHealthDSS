@@ -3,42 +3,256 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mental Health Survey</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{% if result %}Survey Results{% else %}Mental Health Survey{% endif %} - Student Mental Health DSS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #f8fafc;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --accent-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #ef4444;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        margin: 0;
+      }
+      .navbar {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.75rem 0;
+      }
+      .navbar-brand {
+        font-weight: 700;
+        color: var(--accent-blue) !important;
+        font-size: 1.1rem;
+      }
+      .nav-link {
+        color: var(--text-secondary) !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        text-decoration: none;
+      }
+      .nav-link:hover { color: var(--accent-blue) !important; background: rgba(37,99,235,0.08); }
+      .survey-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .survey-header {
+        margin-bottom: 1.5rem;
+      }
+      .survey-header h1 {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+      }
+      .survey-header p {
+        color: var(--text-secondary);
+        margin-bottom: 0;
+      }
+      .question-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: box-shadow 0.2s ease;
+      }
+      .question-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      }
+      .question-card .question-text {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+      .option-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .option-label:hover {
+        border-color: var(--accent-blue);
+        background: rgba(37,99,235,0.03);
+      }
+      .option-label input[type="radio"] {
+        width: 1.1rem;
+        height: 1.1rem;
+        accent-color: var(--accent-blue);
+        cursor: pointer;
+      }
+      .option-label span {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+      .btn-submit {
+        background: #2563eb;
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        display: inline-block;
+      }
+      .btn-submit:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+      }
+      .survey-footer {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        text-align: center;
+      }
+      .survey-footer p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+      }
+      .result-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+      .result-header {
+        padding: 1rem;
+        border-radius: 12px;
+        color: #fff;
+        margin-bottom: 1rem;
+      }
+      .result-header.low { background: linear-gradient(135deg, #10b981, #059669); }
+      .result-header.medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+      .result-header.high { background: linear-gradient(135deg, #ef4444, #dc2626); }
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.95rem;
+      }
+      .result-row:last-child { border-bottom: none; }
+      .result-label { color: var(--text-secondary); font-weight: 500; }
+      .result-value { color: var(--text-primary); font-weight: 600; text-align: right; }
+      .btn-outline-custom {
+        border: 1px solid #e2e8f0;
+        color: var(--text-primary);
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+      }
+      .btn-outline-custom:hover {
+        border-color: var(--accent-blue);
+        color: var(--accent-blue);
+        background: rgba(37,99,235,0.03);
+      }
+    </style>
   </head>
   <body>
-    <main class="container">
-      <h1>Student Mental Health Survey</h1>
-      {% if result %}
-        <div class="result-box" style="background-color: 
-          {% if result.risk_level in ['LOW', 'Low'] %}#28a745
-          {% elif result.risk_level in ['MEDIUM', 'Medium'] %}#ffc107
-          {% else %}#dc3545{% endif %}; color: white; padding: 20px; border-radius: 8px;">
-          <h2>Survey Results</h2>
-          <p>Score: {{ result.score }}</p>
-          <p>Risk Level: {{ result.risk_level }}</p>
-          <p>Priority: {{ result.priority }}</p>
-          <p>Recommendation: {{ result.recommendation }}</p>
-          <p>Intervention Required: {{ 'Yes' if result.intervention_required else 'No' }}</p>
+    <nav class="navbar">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('student_dashboard') }}">
+          <span style="margin-right:0.5rem;">&#x1F3E5;</span> Student Portal
+        </a>
+        <div class="navbar-nav ms-auto gap-3">
+          <a class="nav-link" href="{{ url_for('student_dashboard') }}">Dashboard</a>
+          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
         </div>
-        <a href="{{ url_for('student_survey') }}" class="button">Take Survey Again</a>
+      </div>
+    </nav>
+
+    <main class="survey-container">
+      {% if result %}
+      <div class="survey-header">
+        <h1>Survey Results</h1>
+        <p>Your latest mental wellness assessment summary.</p>
+      </div>
+      <div class="result-card">
+        <div class="result-header {{ result.risk_level|lower }}">
+          <h4 class="mb-0">Risk Level: {{ result.risk_level }}</h4>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Score</span>
+          <span class="result-value">{{ result.score }}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Priority</span>
+          <span class="result-value">{{ result.priority }}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Recommendation</span>
+          <span class="result-value" style="text-align:right; max-width:60%;">{{ result.recommendation }}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Intervention Required</span>
+          <span class="result-value">
+            {% if result.intervention_required %}
+              <span style="color:#dc2626; font-weight:700;">Yes</span>
+            {% else %}
+              <span style="color:#059669; font-weight:700;">No</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="mt-3">
+          <a href="{{ url_for('student_survey') }}" class="btn-outline-custom me-2">Retake Survey</a>
+          <a href="{{ url_for('student_dashboard') }}" class="btn-outline-custom">Back to Dashboard</a>
+        </div>
+      </div>
       {% else %}
-        <form method="POST" action="{{ url_for('student_survey') }}">
-          {% for q in questions %}
-          <div class="question-box">
-            <p><strong>{{ loop.index }}. {{ q[1] }}</strong></p>
-            <label>
-              <input type="radio" name="question_{{ q[0] }}" value="yes" required> Yes
-            </label>
-            <label>
-              <input type="radio" name="question_{{ q[0] }}" value="no"> No
-            </label>
-          </div>
-          {% endfor %}
-          <button type="submit">Submit Survey</button>
-        </form>
+      <div class="survey-header">
+        <h1>Mental Health Survey</h1>
+        <p>Please answer the following questions honestly. Your responses help us provide better support.</p>
+      </div>
+      <form method="POST" action="{{ url_for('student_survey') }}">
+        {% for q in questions %}
+        <div class="question-card">
+          <p class="question-text">{{ loop.index }}. {{ q[1] }}</p>
+          <label class="option-label">
+            <input type="radio" name="question_{{ q[0] }}" value="yes" required>
+            <span>Yes</span>
+          </label>
+          <label class="option-label">
+            <input type="radio" name="question_{{ q[0] }}" value="no">
+            <span>No</span>
+          </label>
+        </div>
+        {% endfor %}
+        <div class="survey-footer">
+          <button type="submit" class="btn-submit">Submit Survey</button>
+          <p class="text-secondary mt-3 mb-0">Press the button above to submit your responses. You can also press Enter after selecting your answers.</p>
+        </div>
+      </form>
       {% endif %}
-      <a href="{{ url_for('student_dashboard') }}" class="button">Back to Dashboard</a>
     </main>
   </body>
 </html>

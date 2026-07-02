@@ -4,16 +4,166 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Student Mental Health Resource DSS</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #f8fafc;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --accent-blue: #2563eb;
+        --accent-teal: #0d9488;
+        --accent-violet: #7c3aed;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        margin: 0;
+      }
+      .navbar {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.75rem 0;
+      }
+      .navbar-brand {
+        font-weight: 700;
+        color: var(--accent-blue) !important;
+        font-size: 1.1rem;
+      }
+      .nav-link {
+        color: var(--text-secondary) !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+      }
+      .nav-link:hover { color: var(--accent-blue) !important; background: rgba(37,99,235,0.08); }
+      .hero {
+        padding: 5rem 0 4rem;
+        text-align: center;
+      }
+      .hero h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        max-width: 640px;
+        margin: 0 auto 2rem;
+      }
+      .feature-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+      }
+      .feature-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        transform: translateY(-2px);
+      }
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+      }
+      .feature-icon.assessment { background: #eff6ff; color: var(--accent-blue); }
+      .feature-icon.appointment { background: #f0fdf4; color: #059669; }
+      .feature-icon.support { background: #fdf2f8; color: #db2777; }
+      .btn-primary-custom {
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+      }
+      .btn-primary-custom:hover {
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+      }
+      .footer {
+        text-align: center;
+        padding: 2rem 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+    </style>
   </head>
   <body>
-    <main class="container">
-      <h1>Student Mental Health Resource Decision Support System</h1>
-      <p>This project provides a structured foundation for a Flask-based decision support application focused on student mental health resources.</p>
-      <div class="status-box">
-        <strong>Development Status:</strong> Project Setup Complete
+    <nav class="navbar">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('home') }}">
+          <span style="margin-right:0.5rem;">&#x1F3E5;</span> Mental Health DSS
+        </a>
+        <div class="navbar-nav ms-auto gap-3">
+          <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+          <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+        </div>
       </div>
-      <a href="{{ url_for('login') }}" class="button">Go to Login</a>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <h1>Student Mental Health Resource DSS</h1>
+          <p>A decision support system designed to help students assess their mental wellbeing, access resources, and connect with counseling support when needed.</p>
+          <a href="{{ url_for('login') }}" class="btn-primary-custom">Get Started</a>
+        </div>
+      </section>
+
+      <section class="container mb-5">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="feature-card">
+              <div class="feature-icon assessment">&#x1F4CA;</div>
+              <h5 class="fw-semibold mb-2">DSS Assessment</h5>
+              <p class="text-secondary mb-0">Complete structured surveys to understand your current mental health status and receive personalized recommendations.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="feature-card">
+              <div class="feature-icon appointment">&#x1F4EB;</div>
+              <h5 class="fw-semibold mb-2">Appointment Booking</h5>
+              <p class="text-secondary mb-0">Request counseling appointments directly from your dashboard and track upcoming sessions.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="feature-card">
+              <div class="feature-icon support">&#x1F91D;</div>
+              <h5 class="fw-semibold mb-2">Counselor Support</h5>
+              <p class="text-secondary mb-0">Get matched with assigned counselors, view case notes, and follow up on recommended interventions.</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <footer class="footer">
+      <div class="container">
+        Student Mental Health Resource Decision Support System
+      </div>
+    </footer>
   </body>
 </html>
