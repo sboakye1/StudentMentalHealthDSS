@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student DSS Report - Student Mental Health DSS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: rgba(30, 41, 59, 0.7);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent-blue: #3b82f6;
+        --accent-cyan: #06b6d4;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --accent-violet: #8b5cf6;
+        --border-color: rgba(148, 163, 184, 0.15);
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-link {
+        color: var(--text-secondary) !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: color 0.2s ease;
+        margin-left: 1rem;
+      }
+
+      .nav-link:hover { color: var(--text-primary) !important; }
+
+      .container { max-width: 1200px; }
+
+      .page-header {
+        padding: 2rem 0 1rem;
+      }
+
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .report-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .report-card h5 {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .info-row:last-child { border-bottom: none; }
+
+      .info-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .info-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .badge-risk {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-risk.high { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+      .badge-risk.medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+      .badge-risk.low { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+      .badge-risk.critical { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
+
+      .table {
+        color: var(--text-primary);
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      .table thead th {
+        background: rgba(15, 23, 42, 0.6);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+      }
+
+      .table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        vertical-align: middle;
+      }
+
+      .table tbody tr:hover { background: rgba(148, 163, 184, 0.05); }
+      .table tbody tr:last-child td { border-bottom: none; }
+
+      .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .btn-back {
+        background: rgba(148, 163, 184, 0.15);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-weight: 600;
+      }
+
+      .btn-back:hover {
+        background: rgba(148, 163, 184, 0.25);
+        color: var(--text-primary);
+      }
+
+      .section-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+          <span style="margin-right: 0.5rem;">&#x1F3E5;</span> Admin Dashboard
+        </a>
+        <div class="navbar-nav ms-auto">
+          <a class="nav-link" href="{{ url_for('student_dashboard') }}">Student</a>
+          <a class="nav-link" href="{{ url_for('counselor_dashboard') }}">Counselor</a>
+          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h1>Student DSS Report</h1>
+            <p class="text-secondary mb-0">Detailed decision support assessment and history</p>
+          </div>
+          <a href="{{ url_for('admin_reports') }}" class="btn btn-back">
+            <span>&#x2190;</span> Back to Reports
+          </a>
+        </div>
+      </div>
+
+      {% set student = data.student %}
+      {% set name = student[0] %}
+      {% set student_id_number = student[1] %}
+      {% set major = student[2] %}
+      {% set year = student[3] %}
+      {% set phone = student[4] %}
+      {% set risk_level = student[5] if student[5] else 'Not Assessed' %}
+      {% set overall_score = student[6] %}
+      {% set priority = student[7] if student[7] else 'Not Assigned' %}
+      {% set recommendations = student[8] if student[8] else 'N/A' %}
+      {% set action_required = student[9] %}
+      {% set last_assessment_date = student[10] %}
+      {% set survey_completion_date = student[11] %}
+
+      <div class="report-card">
+        <h5>&#x1F464; Student Basic Information</h5>
+        <div class="info-row">
+          <span class="info-label">Full Name</span>
+          <span class="info-value">{{ name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Student ID Number</span>
+          <span class="info-value" style="font-family: monospace;">{{ student_id_number }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Major</span>
+          <span class="info-value">{{ major if major else 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Year</span>
+          <span class="info-value">{{ year if year else 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-value">{{ phone if phone else 'N/A' }}</span>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <h5>&#x1F4CA; DSS Summary</h5>
+        <div class="info-row">
+          <span class="info-label">Latest Risk Level</span>
+          <span class="info-value">
+            <span class="badge badge-risk {{ risk_level.lower() }}">{{ risk_level }}</span>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Priority</span>
+          <span class="info-value">{{ priority }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Recommendation</span>
+          <span class="info-value" style="max-width: 600px; text-align: right;">{{ recommendations }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Intervention Required</span>
+          <span class="info-value">
+            {% if action_required %}
+              <span style="color: #fb7185; font-weight: 700;">Yes</span>
+            {% else %}
+              <span style="color: #34d399; font-weight: 700;">No</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Last Survey Date</span>
+          <span class="info-value">{{ survey_completion_date.strftime('%Y-%m-%d') if survey_completion_date else 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Last Assessment Date</span>
+          <span class="info-value">{{ last_assessment_date.strftime('%Y-%m-%d %H:%M') if last_assessment_date else 'N/A' }}</span>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <h5>&#x1F4CB; Survey History</h5>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Survey Date</th>
+                <th>Questions Answered</th>
+                <th>Total Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for survey in data.survey_history %}
+              <tr>
+                <td>{{ survey[0] }}</td>
+                <td>{{ survey[1] }}</td>
+                <td><strong>{{ survey[2] }}</strong></td>
+              </tr>
+              {% endfor %}
+              {% if not data.survey_history %}
+              <tr>
+                <td colspan="3" class="empty-state">No survey history available.</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <h5>&#x1F4C5; Appointment History</h5>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Assigned Counselor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for appt in data.appointments %}
+              <tr>
+                <td>{{ appt[0].strftime('%Y-%m-%d %H:%M') if appt[0] else 'N/A' }}</td>
+                <td>{{ appt[1] if appt[1] else 'N/A' }}</td>
+                <td>
+                  {% set status = (appt[2] or 'unknown').lower() %}
+                  {% if status == 'scheduled' %}
+                    <span style="color: #3b82f6; font-weight: 600;">{{ appt[2] }}</span>
+                  {% elif status == 'completed' %}
+                    <span style="color: #10b981; font-weight: 600;">{{ appt[2] }}</span>
+                  {% elif status == 'cancelled' %}
+                    <span style="color: #f43f5e; font-weight: 600;">{{ appt[2] }}</span>
+                  {% else %}
+                    <span style="color: #94a3b8;">{{ appt[2] }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ appt[4] if appt[4] else 'Unassigned' }}</td>
+              </tr>
+              {% endfor %}
+              {% if not data.appointments %}
+              <tr>
+                <td colspan="4" class="empty-state">No appointments found.</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <h5>&#x1F4DD; Counselor Notes</h5>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Counselor</th>
+                <th>Note Content</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for note in data.notes %}
+              <tr>
+                <td style="white-space: nowrap;">{{ note[1].strftime('%Y-%m-%d %H:%M') if note[1] else 'N/A' }}</td>
+                <td>{{ note[2] if note[2] else 'Unknown' }}</td>
+                <td>{{ note[0] }}</td>
+              </tr>
+              {% endfor %}
+              {% if not data.notes %}
+              <tr>
+                <td colspan="3" class="empty-state">No counselor notes available.</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
