@@ -1,8 +1,10 @@
-from flask import render_template, jsonify, request, session, redirect, url_for, abort, flash
+from flask import render_template, jsonify, request, session, redirect, url_for, abort, flash, Response
 from database import check_database_health, get_connection
 import uuid
 from functools import wraps
 from datetime import datetime
+import csv
+from io import StringIO
 
 
 def login_required(f):
@@ -78,6 +80,44 @@ def _get_or_create_dev_student():
     return student_id
 
 
+def get_logged_in_student_id():
+    if "user_id" not in session or session.get("user_role") != "student":
+        return None
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT id FROM students WHERE user_id = %s", (session["user_id"],))
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return result[0] if result else None
+
+
+def student_has_completed_survey(student_id):
+    if not student_id:
+        return False
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE student_id = %s", (student_id,))
+    count = cursor.fetchone()[0]
+    cursor.close()
+    connection.close()
+    return count > 0
+
+
+def survey_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        if session.get("user_role") != "student":
+            return redirect(url_for("login"))
+        student_id = get_logged_in_student_id()
+        if not student_id or not student_has_completed_survey(student_id):
+            return redirect(url_for("student_survey"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def register_routes(app):
 
     @app.route("/login", methods=["GET", "POST"])
@@ -100,7 +140,10 @@ def register_routes(app):
                 session["user_name"] = user[1]
                 session["user_role"] = user[3]
                 if user[3] == "student":
-                    return redirect(url_for("student_dashboard"))
+                    student_id = get_logged_in_student_id()
+                    if student_id and student_has_completed_survey(student_id):
+                        return redirect(url_for("student_dashboard"))
+                    return redirect(url_for("student_survey"))
                 elif user[3] == "counselor":
                     return redirect(url_for("counselor_dashboard"))
                 elif user[3] == "admin":
@@ -114,14 +157,68 @@ def register_routes(app):
         session.clear()
         return redirect(url_for("login"))
 
+    @app.route("/register", methods=["GET", "POST"])
+    def register():
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "")
+            confirm_password = request.form.get("confirm_password", "")
+            student_id_number = request.form.get("student_id_number", "").strip()
+            major = request.form.get("major", "").strip()
+            year = request.form.get("year", "Freshman")
+            phone = request.form.get("phone", "").strip()
+
+            errors = []
+            if not name or not email or not password or not confirm_password or not student_id_number:
+                errors.append("All required fields must be filled in.")
+            if password != confirm_password:
+                errors.append("Passwords do not match.")
+
+            connection = get_connection()
+            cursor = connection.cursor()
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                errors.append("Email already registered.")
+
+            cursor.execute("SELECT id FROM students WHERE student_id_number = %s", (student_id_number,))
+            if cursor.fetchone():
+                errors.append("Student ID already registered.")
+
+            if errors:
+                cursor.close()
+                connection.close()
+                return render_template("register.html", errors=errors, form={
+                    "name": name, "email": email, "student_id_number": student_id_number,
+                    "major": major, "year": year, "phone": phone
+                })
+
+            cursor.execute(
+                "INSERT INTO users (name, email, password_hash, role, is_active) VALUES (%s, %s, %s, 'student', TRUE)",
+                (name, email, password)
+            )
+            user_id = cursor.lastrowid
+            cursor.execute(
+                "INSERT INTO students (user_id, student_id_number, major, year, phone) VALUES (%s, %s, %s, %s, %s)",
+                (user_id, student_id_number, major, year, phone)
+            )
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+            flash("Registration successful! Please log in.", "success")
+            return redirect(url_for("login"))
+
+        return render_template("register.html")
+
     @app.route("/")
     def home():
         return render_template("index.html")
 
     @app.route("/student/dashboard")
-    @role_required('student')
+    @survey_required
     def student_dashboard():
-        student_id = _get_or_create_dev_student()
+        student_id = get_logged_in_student_id()
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("""
@@ -177,7 +274,7 @@ def register_routes(app):
                     if value == "yes":
                         score += 1
             decision = generate_dss_decision(score)
-            student_id = _get_or_create_dev_student()
+            student_id = get_logged_in_student_id()
             connection = get_connection()
             cursor = connection.cursor()
             cursor.execute(
@@ -212,7 +309,7 @@ def register_routes(app):
             connection.commit()
             cursor.close()
             connection.close()
-            return render_template("student_survey.html", result={"score": score, **decision})
+            return redirect(url_for("student_dashboard"))
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT id, question_text FROM survey_questions WHERE is_active = TRUE ORDER BY display_order")
@@ -230,10 +327,10 @@ def register_routes(app):
         return render_template("student_survey.html", questions=questions, result=None)
 
     @app.route("/student/appointment", methods=["GET", "POST"])
-    @role_required('student')
+    @survey_required
     def student_appointment():
         if request.method == "POST":
-            student_id = _get_or_create_dev_student()
+            student_id = get_logged_in_student_id()
             preferred_date = request.form.get("preferred_date")
             preferred_time = request.form.get("preferred_time")
             appointment_type = request.form.get("appointment_type", "follow_up")
@@ -739,3 +836,289 @@ def register_routes(app):
                 "suicidal_ideation_indicator": bool(row[5])
             })
         return jsonify(cases)
+
+    @app.route("/admin/reports")
+    @role_required('admin')
+    def admin_reports():
+        search = request.args.get('search', '').strip()
+        risk_level = request.args.get('risk_level', 'all').lower()
+        intervention = request.args.get('intervention', 'all').lower()
+        appointment_status = request.args.get('appointment_status', 'all').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        query = """
+            SELECT 
+                s.id,
+                u.name,
+                s.student_id_number,
+                ss.risk_level,
+                ss.overall_score,
+                CASE ss.risk_level
+                    WHEN 'High' THEN 'Critical'
+                    WHEN 'Medium' THEN 'Medium'
+                    WHEN 'Low' THEN 'Low'
+                    ELSE 'Not Assigned'
+                END AS priority,
+                ss.recommendations,
+                ss.action_required,
+                ss.last_assessment_date,
+                ss.survey_completion_date,
+                a.status AS appointment_status,
+                a.appointment_date
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN survey_summary ss ON s.id = ss.student_id
+            LEFT JOIN (
+                SELECT a1.student_id, a1.status, a1.appointment_date
+                FROM appointments a1
+                INNER JOIN (
+                    SELECT student_id, MAX(appointment_date) AS max_date
+                    FROM appointments
+                    GROUP BY student_id
+                ) a2 ON a1.student_id = a2.student_id AND a1.appointment_date = a2.max_date
+            ) a ON s.id = a.student_id
+            WHERE u.is_active = TRUE
+        """
+        params = []
+
+        if search:
+            query += " AND u.name LIKE %s"
+            params.append(f"%{search}%")
+
+        if risk_level != 'all':
+            query += " AND ss.risk_level = %s"
+            params.append(risk_level.capitalize())
+
+        if intervention != 'all':
+            query += " AND ss.action_required = %s"
+            params.append(intervention == 'yes')
+
+        if appointment_status != 'all':
+            query += " AND a.status = %s"
+            params.append(appointment_status)
+
+        query += """
+            GROUP BY s.id, u.name, s.student_id_number, ss.risk_level, ss.overall_score,
+                     ss.recommendations, ss.action_required, ss.last_assessment_date,
+                     ss.survey_completion_date, a.status, a.appointment_date
+            ORDER BY 
+                CASE ss.risk_level
+                    WHEN 'High' THEN 1
+                    WHEN 'Medium' THEN 2
+                    WHEN 'Low' THEN 3
+                    ELSE 4
+                END,
+                ss.last_assessment_date DESC
+        """
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        reports = []
+        for row in rows:
+            reports.append({
+                'id': row[0],
+                'name': row[1],
+                'student_id_number': row[2],
+                'risk_level': row[3] if row[3] else 'Not Assessed',
+                'overall_score': row[4],
+                'priority': row[5] if row[5] else 'Not Assigned',
+                'recommendations': row[6] if row[6] else 'N/A',
+                'action_required': bool(row[7]) if row[7] is not None else False,
+                'last_assessment_date': row[8],
+                'survey_completion_date': row[9],
+                'appointment_status': row[10] if row[10] else 'None',
+                'appointment_date': row[11]
+            })
+
+        return render_template("admin_reports.html", reports=reports, filters={
+            'search': search,
+            'risk_level': risk_level,
+            'intervention': intervention,
+            'appointment_status': appointment_status
+        })
+
+    @app.route("/admin/reports/export")
+    @role_required('admin')
+    def admin_reports_export():
+        search = request.args.get('search', '').strip()
+        risk_level = request.args.get('risk_level', 'all').lower()
+        intervention = request.args.get('intervention', 'all').lower()
+        appointment_status = request.args.get('appointment_status', 'all').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        query = """
+            SELECT 
+                u.name,
+                s.student_id_number,
+                ss.risk_level,
+                ss.overall_score,
+                CASE ss.risk_level
+                    WHEN 'High' THEN 'Critical'
+                    WHEN 'Medium' THEN 'Medium'
+                    WHEN 'Low' THEN 'Low'
+                    ELSE 'Not Assigned'
+                END AS priority,
+                ss.recommendations,
+                ss.action_required,
+                ss.last_assessment_date,
+                ss.survey_completion_date,
+                a.status AS appointment_status
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN survey_summary ss ON s.id = ss.student_id
+            LEFT JOIN (
+                SELECT a1.student_id, a1.status
+                FROM appointments a1
+                INNER JOIN (
+                    SELECT student_id, MAX(appointment_date) AS max_date
+                    FROM appointments
+                    GROUP BY student_id
+                ) a2 ON a1.student_id = a2.student_id AND a1.appointment_date = a2.max_date
+            ) a ON s.id = a.student_id
+            WHERE u.is_active = TRUE
+        """
+        params = []
+
+        if search:
+            query += " AND u.name LIKE %s"
+            params.append(f"%{search}%")
+
+        if risk_level != 'all':
+            query += " AND ss.risk_level = %s"
+            params.append(risk_level.capitalize())
+
+        if intervention != 'all':
+            query += " AND ss.action_required = %s"
+            params.append(intervention == 'yes')
+
+        if appointment_status != 'all':
+            query += " AND a.status = %s"
+            params.append(appointment_status)
+
+        query += """
+            GROUP BY s.id, u.name, s.student_id_number, ss.risk_level, ss.overall_score,
+                     ss.recommendations, ss.action_required, ss.last_assessment_date,
+                     ss.survey_completion_date, a.status
+            ORDER BY 
+                CASE ss.risk_level
+                    WHEN 'High' THEN 1
+                    WHEN 'Medium' THEN 2
+                    WHEN 'Low' THEN 3
+                    ELSE 4
+                END,
+                ss.last_assessment_date DESC
+        """
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            'Student Name', 'Student ID', 'Risk Level', 'Priority',
+            'Recommendation', 'Intervention Required', 'Last Survey Date',
+            'Last Assessment Date', 'Appointment Status'
+        ])
+
+        for row in rows:
+            writer.writerow([
+                row[0],
+                row[1],
+                row[2] if row[2] else 'Not Assessed',
+                row[4] if row[4] else 'Not Assigned',
+                row[5] if row[5] else 'N/A',
+                'Yes' if row[6] else 'No',
+                row[8].strftime('%Y-%m-%d') if row[8] else 'N/A',
+                row[7].strftime('%Y-%m-%d %H:%M') if row[7] else 'N/A',
+                row[9] if row[9] else 'None'
+            ])
+
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment;filename=admin_reports.csv'}
+        )
+
+    @app.route("/admin/student/<int:student_id>/report")
+    @role_required('admin')
+    def admin_student_report(student_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT u.name, s.student_id_number, s.major, s.year, s.phone,
+                   ss.risk_level, ss.overall_score,
+                   CASE ss.risk_level
+                       WHEN 'High' THEN 'Critical'
+                       WHEN 'Medium' THEN 'Medium'
+                       WHEN 'Low' THEN 'Low'
+                       ELSE 'Not Assigned'
+                   END AS priority,
+                   ss.recommendations, ss.action_required,
+                   ss.last_assessment_date, ss.survey_completion_date
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN survey_summary ss ON s.id = ss.student_id
+            WHERE s.id = %s
+        """, (student_id,))
+        student_info = cursor.fetchone()
+
+        if not student_info:
+            cursor.close()
+            connection.close()
+            flash("Student not found.", "danger")
+            return redirect(url_for("admin_reports"))
+
+        cursor.execute("""
+            SELECT DATE(sr.response_date) as survey_date,
+                   COUNT(*) as question_count,
+                   SUM(sr.response_score) as total_score
+            FROM survey_responses sr
+            WHERE sr.student_id = %s
+            GROUP BY DATE(sr.response_date)
+            ORDER BY survey_date DESC
+        """, (student_id,))
+        survey_history = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT a.appointment_date, a.appointment_type, a.status,
+                   c.id AS counselor_id, u.name AS counselor_name
+            FROM appointments a
+            LEFT JOIN counselors c ON a.counselor_id = c.id
+            LEFT JOIN users u ON c.user_id = u.id
+            WHERE a.student_id = %s
+            ORDER BY a.appointment_date DESC
+        """, (student_id,))
+        appointments = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT cn.note_content, cn.created_at, u.name AS counselor_name
+            FROM counselor_notes cn
+            LEFT JOIN counselors c ON cn.counselor_id = c.id
+            LEFT JOIN users u ON c.user_id = u.id
+            WHERE cn.student_id = %s
+            ORDER BY cn.created_at DESC
+        """, (student_id,))
+        notes = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        student_data = {
+            'student': student_info,
+            'survey_history': survey_history,
+            'appointments': appointments,
+            'notes': notes
+        }
+
+        return render_template("admin_student_report.html", data=student_data)
