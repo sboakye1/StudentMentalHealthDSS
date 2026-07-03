@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Appointment Requests - Counselor Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --accent-teal: #0d9488;
+        --accent-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #ef4444;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 240px;
+        height: 100vh;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 1rem;
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .sidebar-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--accent-teal);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 2rem;
+        padding-left: 0.5rem;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .sidebar-nav .nav-item {
+        margin-bottom: 0.25rem;
+      }
+
+      .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-nav .nav-link:hover {
+        background: rgba(13, 148, 136, 0.05);
+        color: var(--accent-teal);
+      }
+
+      .sidebar-nav .nav-link.active {
+        background: rgba(13, 148, 136, 0.1);
+        color: var(--accent-teal);
+        font-weight: 600;
+      }
+
+      .sidebar-nav .nav-icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .main-content {
+        margin-left: 240px;
+        padding: 1.5rem 0;
+      }
+
+      @media (max-width: 991.98px) {
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+          border-right: none;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+      }
+
+      .main-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+      }
+
+      .main-card .card-header {
+        padding: 0 0 1rem 0;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .main-card .card-header h5 {
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+        color: var(--text-primary);
+      }
+
+      .header-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+      }
+
+      .header-icon.requests { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
+
+      .table {
+        color: var(--text-primary);
+        margin-bottom: 0;
+      }
+
+      .table thead th {
+        background: #f8fafc;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+      }
+
+      .table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        vertical-align: middle;
+      }
+
+      .table tbody tr:hover { background: rgba(148, 163, 184, 0.04); }
+      .table tbody tr:last-child td { border-bottom: none; }
+
+      .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .btn-back {
+        background: rgba(13, 148, 136, 0.1);
+        color: var(--accent-teal);
+        border: 1px solid rgba(13, 148, 136, 0.2);
+        border-radius: 6px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      .btn-back:hover {
+        background: rgba(13, 148, 136, 0.2);
+        color: var(--accent-teal);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="sidebar">
+      <a class="sidebar-brand" href="{{ url_for('counselor_dashboard') }}">
+        &#x1F3E5; Counselor Portal
+      </a>
+      <ul class="sidebar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_dashboard') }}">
+            <span class="nav-icon">&#x1F3E5;</span>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_students') }}">
+            <span class="nav-icon">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
+            Assigned Students
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('counselor_requests') }}">
+            <span class="nav-icon">&#x1F4EB;</span>
+            Appointment Requests
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_appointments') }}">
+            <span class="nav-icon">&#x1F4C5;</span>
+            Scheduled Appointments
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('logout') }}">
+            <span class="nav-icon">&#x1F511;</span>
+            Logout
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Appointment Requests</h1>
+            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Review and act on pending appointment requests</p>
+          </div>
+          <a href="{{ url_for('counselor_dashboard') }}" class="btn-back">
+            &#x21A9; Back to Dashboard
+          </a>
+        </div>
+
+        <div class="main-card">
+          <div class="card-header">
+            <span class="header-icon requests">&#x1F4EB;</span>
+            <h5>Pending Requests</h5>
+          </div>
+          {% if requests %}
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th style="text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in requests %}
+                <tr>
+                  <td style="font-weight: 600; font-size: 0.85rem;">{{ req[1] }}</td>
+                  <td style="font-size: 0.85rem;">{{ req[2].strftime('%m/%d %H:%M') if req[2] else 'N/A' }}</td>
+                  <td style="font-size: 0.85rem;">{{ req[3] or 'N/A' }}</td>
+                  <td style="text-align: center;">
+                    <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-success btn-sm py-0 px-2">✓</button>
+                    </form>
+                    <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-danger btn-sm py-0 px-2 ms-1">✗</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state py-4">No pending requests</div>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

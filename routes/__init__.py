@@ -260,6 +260,26 @@ def register_routes(app):
         }
         return render_template("student_dashboard.html", data=dashboard_data)
 
+    @app.route("/student/appointments")
+    @survey_required
+    def student_appointments():
+        student_id = get_logged_in_student_id()
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT a.appointment_date, a.status, a.appointment_type,
+                   COALESCE(u.name, 'Unassigned') as counselor_name
+            FROM appointments a
+            LEFT JOIN counselors c ON a.counselor_id = c.id
+            LEFT JOIN users u ON c.user_id = u.id
+            WHERE a.student_id = %s
+            ORDER BY a.appointment_date DESC
+        """, (student_id,))
+        appointments = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return render_template("student_appointments.html", appointments=appointments)
+
     @app.route("/student/survey", methods=["GET", "POST"])
     @role_required('student')
     def student_survey():
@@ -354,9 +374,15 @@ def register_routes(app):
         user_id = session.get("user_id")
         connection = get_connection()
         cursor = connection.cursor()
-        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor_name = "Counselor"
+        counselor_id = None
+        cursor.execute("SELECT id, user_id FROM counselors WHERE user_id = %s", (user_id,))
         counselor = cursor.fetchone()
-        counselor_id = counselor[0] if counselor else None
+        if counselor:
+            counselor_id = counselor[0]
+            cursor.execute("SELECT name FROM users WHERE id = %s", (counselor[1],))
+            counselor_row = cursor.fetchone()
+            counselor_name = counselor_row[0] if counselor_row else "Counselor"
         assigned_students = []
         high_risk = medium_risk = low_risk = 0
         upcoming_appointments = []
@@ -439,6 +465,7 @@ def register_routes(app):
         cursor.close()
         connection.close()
         counselor_data = {
+            "counselor_name": counselor_name,
             "total_students": len(assigned_students),
             "high_risk_students": high_risk,
             "medium_risk_students": medium_risk,
@@ -450,6 +477,95 @@ def register_routes(app):
             "my_appointments": my_appointments
         }
         return render_template("counselor_dashboard.html", data=counselor_data)
+
+    @app.route("/counselor/students")
+    @role_required('counselor')
+    def counselor_students():
+        user_id = session.get("user_id")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor = cursor.fetchone()
+        counselor_id = counselor[0] if counselor else None
+        students = []
+        if counselor_id:
+            cursor.execute("""
+                SELECT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
+                       ss.last_assessment_date,
+                       CASE ss.risk_level
+                           WHEN 'High' THEN 'Critical'
+                           WHEN 'Medium' THEN 'Medium'
+                           WHEN 'Low' THEN 'Low'
+                           ELSE 'Not Assigned'
+                       END AS priority,
+                       ss.recommendations
+                FROM students s
+                JOIN users u ON s.user_id = u.id
+                LEFT JOIN survey_summary ss ON s.id = ss.student_id
+                JOIN counselor_assignments ca ON s.id = ca.student_id
+                WHERE ca.counselor_id = %s AND ca.status = 'active'
+                ORDER BY
+                    CASE ss.risk_level
+                        WHEN 'High' THEN 1
+                        WHEN 'Medium' THEN 2
+                        WHEN 'Low' THEN 3
+                        ELSE 4
+                    END,
+                    ss.last_assessment_date DESC
+            """, (counselor_id,))
+            students = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return render_template("counselor_students.html", students=students)
+
+    @app.route("/counselor/requests")
+    @role_required('counselor')
+    def counselor_requests():
+        user_id = session.get("user_id")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor = cursor.fetchone()
+        counselor_id = counselor[0] if counselor else None
+        requests = []
+        if counselor_id:
+            # Get unassigned requests (available for this counselor to claim)
+            cursor.execute("""
+                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.meeting_notes
+                FROM appointments a
+                JOIN students s ON a.student_id = s.id
+                JOIN users u ON s.user_id = u.id
+                WHERE a.counselor_id IS NULL AND a.status = 'scheduled'
+                ORDER BY a.appointment_date ASC
+            """)
+            requests = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return render_template("counselor_requests.html", requests=requests)
+
+    @app.route("/counselor/appointments")
+    @role_required('counselor')
+    def counselor_appointments():
+        user_id = session.get("user_id")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor = cursor.fetchone()
+        counselor_id = counselor[0] if counselor else None
+        appointments = []
+        if counselor_id:
+            cursor.execute("""
+                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status
+                FROM appointments a
+                JOIN students s ON a.student_id = s.id
+                JOIN users u ON s.user_id = u.id
+                WHERE a.counselor_id = %s AND a.status = 'scheduled'
+                ORDER BY a.appointment_date ASC
+            """, (counselor_id,))
+            appointments = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return render_template("counselor_appointments.html", appointments=appointments)
 
     @app.route("/counselor/student/<int:student_id>")
     @role_required('counselor')
@@ -509,33 +625,34 @@ def register_routes(app):
             user_id = session.get("user_id")
             connection = get_connection()
             cursor = connection.cursor()
-            cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+            cursor.execute("SELECT id, user_id FROM counselors WHERE user_id = %s", (user_id,))
             counselor = cursor.fetchone()
             counselor_id = counselor[0] if counselor else None
-            appointment_id = request.form.get("appointment_id") or None
-            note_content = request.form.get("note_content", "")
-            session_summary = request.form.get("session_summary", "")
-            mood_observed = request.form.get("mood_observed", "")
-            mental_status = request.form.get("mental_status_assessment", "")
-            follow_up_required = request.form.get("follow_up_required") == "on"
-            follow_up_plan = request.form.get("follow_up_plan", "")
-            recommended_resources = request.form.get("recommended_resources", "")
-            risk_update = request.form.get("risk_assessment_update") or None
-            referral_needed = request.form.get("referral_needed") == "on"
-            referral_details = request.form.get("referral_details", "")
-            cursor.execute("""
-                INSERT INTO counselor_notes 
-                (appointment_id, student_id, counselor_id, note_content, session_summary, mood_observed,
-                 mental_status_assessment, follow_up_required, follow_up_plan, recommended_resources,
-                 risk_assessment_update, referral_needed, referral_details)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (appointment_id, student_id, counselor_id, note_content, session_summary, mood_observed,
-                  mental_status, follow_up_required, follow_up_plan, recommended_resources,
-                  risk_update, referral_needed, referral_details))
-            connection.commit()
-            cursor.close()
-            connection.close()
-            return redirect(url_for("counselor_student_detail", student_id=student_id))
+            if counselor:
+                appointment_id = request.form.get("appointment_id") or None
+                note_content = request.form.get("note_content", "")
+                session_summary = request.form.get("session_summary", "")
+                mood_observed = request.form.get("mood_observed", "")
+                mental_status = request.form.get("mental_status_assessment", "")
+                follow_up_required = request.form.get("follow_up_required") == "on"
+                follow_up_plan = request.form.get("follow_up_plan", "")
+                recommended_resources = request.form.get("recommended_resources", "")
+                risk_update = request.form.get("risk_assessment_update") or None
+                referral_needed = request.form.get("referral_needed") == "on"
+                referral_details = request.form.get("referral_details", "")
+                cursor.execute("""
+                    INSERT INTO counselor_notes 
+                    (appointment_id, student_id, counselor_id, note_content, session_summary, mood_observed,
+                     mental_status_assessment, follow_up_required, follow_up_plan, recommended_resources,
+                     risk_assessment_update, referral_needed, referral_details)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (appointment_id, student_id, counselor_id, note_content, session_summary, mood_observed,
+                      mental_status, follow_up_required, follow_up_plan, recommended_resources,
+                      risk_update, referral_needed, referral_details))
+                connection.commit()
+                cursor.close()
+                connection.close()
+                return redirect(url_for("counselor_student_detail", student_id=student_id))
         return redirect(url_for("counselor_student_detail", student_id=student_id))
 
     @app.route("/counselor/notes/edit/<int:note_id>", methods=["GET", "POST"])
