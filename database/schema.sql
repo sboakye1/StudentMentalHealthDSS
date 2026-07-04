@@ -50,13 +50,16 @@ CREATE TABLE students (
     emergency_contact_name VARCHAR(255),
     emergency_contact_phone VARCHAR(20),
     is_at_risk BOOLEAN DEFAULT FALSE,
+    assigned_counselor_id INT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_counselor_id) REFERENCES counselors(id) ON DELETE SET NULL,
     INDEX idx_student_id_number (student_id_number),
     INDEX idx_year (year),
-    INDEX idx_is_at_risk (is_at_risk)
+    INDEX idx_is_at_risk (is_at_risk),
+    INDEX idx_assigned_counselor_id (assigned_counselor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -157,7 +160,7 @@ CREATE TABLE survey_summary (
 CREATE TABLE appointments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     student_id INT NOT NULL,
-    counselor_id INT NOT NULL,
+    counselor_id INT NULL,
     appointment_date DATETIME NOT NULL,
     duration_minutes INT DEFAULT 60,
     status ENUM('scheduled', 'completed', 'cancelled', 'no_show', 'rescheduled') NOT NULL DEFAULT 'scheduled',
@@ -168,7 +171,7 @@ CREATE TABLE appointments (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-    FOREIGN KEY (counselor_id) REFERENCES counselors(id) ON DELETE RESTRICT,
+    FOREIGN KEY (counselor_id) REFERENCES counselors(id) ON DELETE SET NULL,
     INDEX idx_student_id (student_id),
     INDEX idx_counselor_id (counselor_id),
     INDEX idx_appointment_date (appointment_date),
@@ -294,14 +297,12 @@ SELECT
     s.major,
     s.year,
     ss.risk_level,
-    c.user_id AS counselor_user_id,
-    cu.name AS counselor_name,
-    ca.assignment_date
+    s.assigned_counselor_id AS counselor_id,
+    cu.name AS counselor_name
 FROM students s
 JOIN users u ON s.user_id = u.id
 LEFT JOIN survey_summary ss ON s.id = ss.student_id
-LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
-LEFT JOIN counselors c ON ca.counselor_id = c.id
+LEFT JOIN counselors c ON s.assigned_counselor_id = c.id
 LEFT JOIN users cu ON c.user_id = cu.id
 WHERE u.is_active = TRUE;
 
@@ -316,13 +317,12 @@ SELECT
     ss.overall_score,
     ss.suicidal_ideation_indicator,
     ss.last_assessment_date,
-    ca.counselor_id,
+    s.assigned_counselor_id AS counselor_id,
     cu.name AS assigned_counselor
 FROM students s
 JOIN users u ON s.user_id = u.id
 JOIN survey_summary ss ON s.id = ss.student_id
-LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
-LEFT JOIN counselors c ON ca.counselor_id = c.id
+LEFT JOIN counselors c ON s.assigned_counselor_id = c.id
 LEFT JOIN users cu ON c.user_id = cu.id
 WHERE ss.risk_level = 'High' AND u.is_active = TRUE;
 

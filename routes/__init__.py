@@ -92,6 +92,34 @@ def get_logged_in_student_id():
     return result[0] if result else None
 
 
+def get_available_counselors():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT c.id, 
+            (COALESCE(s.student_count, 0) + COALESCE(ca.assignment_count, 0)) as total_assigned
+        FROM counselors c
+        LEFT JOIN (
+            SELECT assigned_counselor_id as counselor_id, COUNT(*) as student_count
+            FROM students
+            WHERE assigned_counselor_id IS NOT NULL
+            GROUP BY assigned_counselor_id
+        ) s ON c.id = s.counselor_id
+        LEFT JOIN (
+            SELECT counselor_id, COUNT(*) as assignment_count
+            FROM counselor_assignments
+            WHERE status = 'active'
+            GROUP BY counselor_id
+        ) ca ON c.id = ca.counselor_id
+        ORDER BY total_assigned ASC, c.id ASC
+        LIMIT 1
+    """)
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return result[0] if result else None
+
+
 def student_has_completed_survey(student_id):
     if not student_id:
         return False
@@ -202,6 +230,17 @@ def register_routes(app):
                 "INSERT INTO students (user_id, student_id_number, major, year, phone) VALUES (%s, %s, %s, %s, %s)",
                 (user_id, student_id_number, major, year, phone)
             )
+            student_id = cursor.lastrowid
+            counselor_id = get_available_counselors()
+            if counselor_id:
+                cursor.execute(
+                    "UPDATE students SET assigned_counselor_id = %s WHERE id = %s",
+                    (counselor_id, student_id)
+                )
+                cursor.execute(
+                    "INSERT INTO counselor_assignments (student_id, counselor_id, assignment_date, reason_for_assignment) VALUES (%s, %s, CURDATE(), 'Auto-assigned on registration')",
+                    (student_id, counselor_id)
+                )
             connection.commit()
             cursor.close()
             connection.close()
@@ -358,10 +397,13 @@ def register_routes(app):
             appointment_datetime = f"{preferred_date} {preferred_time}"
             connection = get_connection()
             cursor = connection.cursor()
+            cursor.execute("SELECT assigned_counselor_id FROM students WHERE id = %s", (student_id,))
+            student_row = cursor.fetchone()
+            assigned_counselor_id = student_row[0] if student_row else None
             cursor.execute("""
                 INSERT INTO appointments (student_id, counselor_id, appointment_date, appointment_type, status, meeting_notes)
-                VALUES (%s, NULL, %s, %s, 'scheduled', %s)
-            """, (student_id, appointment_datetime, appointment_type, reason))
+                VALUES (%s, %s, %s, %s, 'scheduled', %s)
+            """, (student_id, assigned_counselor_id, appointment_datetime, appointment_type, reason))
             connection.commit()
             cursor.close()
             connection.close()
@@ -391,7 +433,7 @@ def register_routes(app):
         my_appointments = []
         if counselor_id:
             cursor.execute("""
-                SELECT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
+                SELECT DISTINCT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
                        ss.last_assessment_date,
                        CASE ss.risk_level
                            WHEN 'High' THEN 'Critical'
@@ -403,8 +445,8 @@ def register_routes(app):
                 FROM students s
                 JOIN users u ON s.user_id = u.id
                 LEFT JOIN survey_summary ss ON s.id = ss.student_id
-                JOIN counselor_assignments ca ON s.id = ca.student_id
-                WHERE ca.counselor_id = %s AND ca.status = 'active'
+                LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
+                WHERE s.assigned_counselor_id = %s OR ca.counselor_id = %s
                 ORDER BY
                     CASE ss.risk_level
                         WHEN 'High' THEN 1
@@ -413,18 +455,18 @@ def register_routes(app):
                         ELSE 4
                     END,
                     ss.last_assessment_date DESC
-            """, (counselor_id,))
+            """, (counselor_id, counselor_id))
             assigned_students = cursor.fetchall()
             cursor.execute("""
                 SELECT 
-                    COUNT(CASE WHEN ss.risk_level = 'High' THEN 1 END) as high_risk,
-                    COUNT(CASE WHEN ss.risk_level = 'Medium' THEN 1 END) as medium_risk,
-                    COUNT(CASE WHEN ss.risk_level = 'Low' THEN 1 END) as low_risk
-                FROM counselor_assignments ca
-                JOIN students s ON ca.student_id = s.id
+                    COUNT(DISTINCT CASE WHEN ss.risk_level = 'High' THEN s.id END) as high_risk,
+                    COUNT(DISTINCT CASE WHEN ss.risk_level = 'Medium' THEN s.id END) as medium_risk,
+                    COUNT(DISTINCT CASE WHEN ss.risk_level = 'Low' THEN s.id END) as low_risk
+                FROM students s
                 LEFT JOIN survey_summary ss ON s.id = ss.student_id
-                WHERE ca.counselor_id = %s AND ca.status = 'active'
-            """, (counselor_id,))
+                LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
+                WHERE s.assigned_counselor_id = %s OR ca.counselor_id = %s
+            """, (counselor_id, counselor_id))
             risk_counts = cursor.fetchone()
             high_risk = risk_counts[0] or 0
             medium_risk = risk_counts[1] or 0
@@ -490,7 +532,7 @@ def register_routes(app):
         students = []
         if counselor_id:
             cursor.execute("""
-                SELECT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
+                SELECT DISTINCT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
                        ss.last_assessment_date,
                        CASE ss.risk_level
                            WHEN 'High' THEN 'Critical'
@@ -502,8 +544,8 @@ def register_routes(app):
                 FROM students s
                 JOIN users u ON s.user_id = u.id
                 LEFT JOIN survey_summary ss ON s.id = ss.student_id
-                JOIN counselor_assignments ca ON s.id = ca.student_id
-                WHERE ca.counselor_id = %s AND ca.status = 'active'
+                LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
+                WHERE s.assigned_counselor_id = %s OR ca.counselor_id = %s
                 ORDER BY
                     CASE ss.risk_level
                         WHEN 'High' THEN 1
@@ -512,7 +554,7 @@ def register_routes(app):
                         ELSE 4
                     END,
                     ss.last_assessment_date DESC
-            """, (counselor_id,))
+            """, (counselor_id, counselor_id))
             students = cursor.fetchall()
         cursor.close()
         connection.close()
