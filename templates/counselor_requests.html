@@ -148,6 +148,19 @@
 
       .header-icon.requests { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
 
+      .badge-risk {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-risk.high { background: #fee2e2; color: #991b1b; }
+      .badge-risk.medium { background: #fef3c7; color: #92400e; }
+      .badge-risk.low { background: #dcfce7; color: #15803d; }
+
       .table {
         color: var(--text-primary);
         margin-bottom: 0;
@@ -196,6 +209,20 @@
       .btn-back:hover {
         background: rgba(13, 148, 136, 0.2);
         color: var(--accent-teal);
+      }
+
+      .filter-form .form-control, .filter-form .form-select {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.75rem;
+      }
+
+      .filter-form .btn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.85rem;
+      }
+
+      .filter-row {
+        margin-bottom: 1rem;
       }
     </style>
   </head>
@@ -250,6 +277,33 @@
           </a>
         </div>
 
+        <form method="GET" class="filter-form mb-3">
+          <div class="row g-2 filter-row">
+            <div class="col-md-5">
+              <input type="text" name="search" class="form-control" placeholder="Search student name..." value="{{ filters.search or '' }}">
+            </div>
+            <div class="col-md-3">
+              <select name="type" class="form-select">
+                <option value="all" {% if filters.type == 'all' or not filters.type %}selected{% endif %}>All Types</option>
+                <option value="initial" {% if filters.type == 'initial' %}selected{% endif %}>Initial</option>
+                <option value="follow_up" {% if filters.type == 'follow_up' %}selected{% endif %}>Follow-up</option>
+                <option value="emergency" {% if filters.type == 'emergency' %}selected{% endif %}>Emergency</option>
+                <option value="group" {% if filters.type == 'group' %}selected{% endif %}>Group</option>
+              </select>
+            </div>
+            <div class="col-md-1">
+              <button type="submit" class="btn btn-sm w-100" style="background: var(--accent-teal); color: white;">Go</button>
+            </div>
+          </div>
+          {% if filters.search or filters.type != 'all' %}
+          <div class="row">
+            <div class="col-12">
+              <a href="{{ url_for('counselor_requests') }}" class="btn btn-outline-secondary btn-sm">Reset Filters</a>
+            </div>
+          </div>
+          {% endif %}
+        </form>
+
         <div class="main-card">
           <div class="card-header">
             <span class="header-icon requests">&#x1F4EB;</span>
@@ -263,21 +317,27 @@
                   <th>Student</th>
                   <th>Date</th>
                   <th>Type</th>
+                  <th>Notes</th>
                   <th style="text-align: center;">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {% for req in requests %}
                 <tr>
-                  <td style="font-weight: 600; font-size: 0.85rem;">{{ req[1] }}</td>
-                  <td style="font-size: 0.85rem;">{{ req[2].strftime('%m/%d %H:%M') if req[2] else 'N/A' }}</td>
-                  <td style="font-size: 0.85rem;">{{ req[3] or 'N/A' }}</td>
+                  <td style="font-weight: 600;">{{ req[1] }}</td>
+                  <td>{{ req[2].strftime('%m/%d/%Y %H:%M') if req[2] else 'N/A' }}</td>
+                  <td>
+                    <span class="badge-risk {{ req[3]|lower|replace(' ', '_') }}" style="background: rgba(245, 158, 11, 0.1); color: #92400e;">
+                      {{ req[3] or 'N/A' }}
+                    </span>
+                  </td>
+                  <td>{{ req[4][:50] + '...' if req[4] and req[4]|length > 50 else (req[4] or '-') }}</td>
                   <td style="text-align: center;">
                     <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                      <button type="submit" class="btn btn-success btn-sm py-0 px-2">✓</button>
+                      <button type="submit" class="btn btn-success btn-sm py-0 px-2">✓ Approve</button>
                     </form>
                     <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                      <button type="submit" class="btn btn-danger btn-sm py-0 px-2 ms-1">✗</button>
+                      <button type="submit" class="btn btn-danger btn-sm py-0 px-2 ms-1">✗ Reject</button>
                     </form>
                   </td>
                 </tr>
@@ -286,7 +346,7 @@
             </table>
           </div>
           {% else %}
-          <div class="empty-state py-4">No pending requests</div>
+          <div class="empty-state py-4">No pending requests matching your criteria</div>
           {% endif %}
         </div>
       </div>

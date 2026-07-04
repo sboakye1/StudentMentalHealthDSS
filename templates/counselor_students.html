@@ -241,6 +241,20 @@
         background: rgba(13, 148, 136, 0.2);
         color: var(--accent-teal);
       }
+
+      .filter-form .form-control, .filter-form .form-select {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.75rem;
+      }
+
+      .filter-form .btn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.85rem;
+      }
+
+      .filter-row {
+        margin-bottom: 1rem;
+      }
     </style>
   </head>
   <body>
@@ -294,6 +308,40 @@
           </a>
         </div>
 
+        <form method="GET" class="filter-form mb-3">
+          <div class="row g-2 filter-row">
+            <div class="col-md-5">
+              <input type="text" name="search" class="form-control" placeholder="Search student name..." value="{{ filters.search or '' }}">
+            </div>
+            <div class="col-md-3">
+              <select name="risk_level" class="form-select">
+                <option value="all" {% if filters.risk_level == 'all' or not filters.risk_level %}selected{% endif %}>All Risk Levels</option>
+                <option value="high" {% if filters.risk_level == 'high' %}selected{% endif %}>High</option>
+                <option value="medium" {% if filters.risk_level == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="low" {% if filters.risk_level == 'low' %}selected{% endif %}>Low</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select name="priority" class="form-select">
+                <option value="all" {% if filters.priority == 'all' or not filters.priority %}selected{% endif %}>All Priorities</option>
+                <option value="critical" {% if filters.priority == 'critical' %}selected{% endif %}>Critical</option>
+                <option value="medium" {% if filters.priority == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="low" {% if filters.priority == 'low' %}selected{% endif %}>Low</option>
+              </select>
+            </div>
+            <div class="col-md-1">
+              <button type="submit" class="btn btn-sm w-100" style="background: var(--accent-teal); color: white;">Go</button>
+            </div>
+          </div>
+          {% if filters.search or filters.risk_level != 'all' or filters.priority != 'all' %}
+          <div class="row">
+            <div class="col-12">
+              <a href="{{ url_for('counselor_students') }}" class="btn btn-outline-secondary btn-sm">Reset Filters</a>
+            </div>
+          </div>
+          {% endif %}
+        </form>
+
         <div class="main-card">
           <div class="card-header">
             <span class="header-icon students">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
@@ -305,6 +353,7 @@
               <thead>
                 <tr>
                   <th>Student Name</th>
+                  <th>Student ID</th>
                   <th>Risk Level</th>
                   <th>Priority</th>
                   <th>Last Assessment</th>
@@ -315,6 +364,7 @@
                 {% for student in students %}
                 <tr>
                   <td style="font-weight: 600;">{{ student[1] }}</td>
+                  <td>{{ student[2] or 'N/A' }}</td>
                   <td>
                     <span class="badge-risk {{ student[4]|lower|replace(' ', '-') }}">
                       {{ student[4] or 'Not Assessed' }}
@@ -335,7 +385,7 @@
             </table>
           </div>
           {% else %}
-          <div class="empty-state py-4">No students assigned yet</div>
+          <div class="empty-state py-4">No students found matching your criteria</div>
           {% endif %}
         </div>
       </div>

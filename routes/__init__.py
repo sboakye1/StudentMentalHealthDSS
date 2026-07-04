@@ -524,6 +524,10 @@ def register_routes(app):
     @role_required('counselor')
     def counselor_students():
         user_id = session.get("user_id")
+        search = request.args.get('search', '').strip()
+        risk_level = request.args.get('risk_level', 'all').lower()
+        priority = request.args.get('priority', 'all').lower()
+        
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
@@ -531,7 +535,7 @@ def register_routes(app):
         counselor_id = counselor[0] if counselor else None
         students = []
         if counselor_id:
-            cursor.execute("""
+            query = """
                 SELECT DISTINCT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
                        ss.last_assessment_date,
                        CASE ss.risk_level
@@ -545,7 +549,25 @@ def register_routes(app):
                 JOIN users u ON s.user_id = u.id
                 LEFT JOIN survey_summary ss ON s.id = ss.student_id
                 LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
-                WHERE s.assigned_counselor_id = %s OR ca.counselor_id = %s
+                WHERE (s.assigned_counselor_id = %s OR ca.counselor_id = %s)
+            """
+            params = [counselor_id, counselor_id]
+            
+            if search:
+                query += " AND u.name LIKE %s"
+                params.append(f"%{search}%")
+            if risk_level != 'all':
+                query += " AND ss.risk_level = %s"
+                params.append(risk_level.capitalize())
+            if priority != 'all':
+                if priority == 'critical':
+                    query += " AND ss.risk_level = 'High'"
+                elif priority == 'medium':
+                    query += " AND ss.risk_level = 'Medium'"
+                elif priority == 'low':
+                    query += " AND ss.risk_level = 'Low'"
+            
+            query += """
                 ORDER BY
                     CASE ss.risk_level
                         WHEN 'High' THEN 1
@@ -554,16 +576,21 @@ def register_routes(app):
                         ELSE 4
                     END,
                     ss.last_assessment_date DESC
-            """, (counselor_id, counselor_id))
+            """
+            cursor.execute(query, params)
             students = cursor.fetchall()
         cursor.close()
         connection.close()
-        return render_template("counselor_students.html", students=students)
+        filters = {'search': search, 'risk_level': risk_level, 'priority': priority}
+        return render_template("counselor_students.html", students=students, filters=filters)
 
     @app.route("/counselor/requests")
     @role_required('counselor')
     def counselor_requests():
         user_id = session.get("user_id")
+        search = request.args.get('search', '').strip()
+        appt_type = request.args.get('type', 'all').lower()
+        
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
@@ -571,24 +598,37 @@ def register_routes(app):
         counselor_id = counselor[0] if counselor else None
         requests = []
         if counselor_id:
-            # Get unassigned requests (available for this counselor to claim)
-            cursor.execute("""
+            query = """
                 SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.meeting_notes
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
                 WHERE a.counselor_id IS NULL AND a.status = 'scheduled'
-                ORDER BY a.appointment_date ASC
-            """)
+            """
+            params = []
+            
+            if search:
+                query += " AND u.name LIKE %s"
+                params.append(f"%{search}%")
+            if appt_type != 'all':
+                query += " AND a.appointment_type = %s"
+                params.append(appt_type)
+            
+            query += " ORDER BY a.appointment_date ASC"
+            cursor.execute(query, params)
             requests = cursor.fetchall()
         cursor.close()
         connection.close()
-        return render_template("counselor_requests.html", requests=requests)
+        filters = {'search': search, 'type': appt_type}
+        return render_template("counselor_requests.html", requests=requests, filters=filters)
 
     @app.route("/counselor/appointments")
     @role_required('counselor')
     def counselor_appointments():
         user_id = session.get("user_id")
+        search = request.args.get('search', '').strip()
+        status = request.args.get('status', 'all').lower()
+        
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
@@ -596,18 +636,29 @@ def register_routes(app):
         counselor_id = counselor[0] if counselor else None
         appointments = []
         if counselor_id:
-            cursor.execute("""
+            query = """
                 SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
-                WHERE a.counselor_id = %s AND a.status = 'scheduled'
-                ORDER BY a.appointment_date ASC
-            """, (counselor_id,))
+                WHERE a.counselor_id = %s
+            """
+            params = [counselor_id]
+            
+            if search:
+                query += " AND u.name LIKE %s"
+                params.append(f"%{search}%")
+            if status != 'all':
+                query += " AND a.status = %s"
+                params.append(status)
+            
+            query += " ORDER BY a.appointment_date ASC"
+            cursor.execute(query, params)
             appointments = cursor.fetchall()
         cursor.close()
         connection.close()
-        return render_template("counselor_appointments.html", appointments=appointments)
+        filters = {'search': search, 'status': status}
+        return render_template("counselor_appointments.html", appointments=appointments, filters=filters)
 
     @app.route("/counselor/student/<int:student_id>")
     @role_required('counselor')
@@ -831,21 +882,12 @@ def register_routes(app):
         medium_risk = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'Low'")
         low_risk = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'High'")
+        cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE risk_level = 'High' AND action_required = TRUE")
         critical_cases = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM survey_summary WHERE action_required = TRUE")
         intervention_required = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM survey_responses")
         total_surveys = cursor.fetchone()[0]
-        cursor.execute("""
-            SELECT u.name, ss.survey_completion_date, ss.risk_level, ss.overall_score
-            FROM survey_summary ss
-            JOIN students s ON ss.student_id = s.id
-            JOIN users u ON s.user_id = u.id
-            ORDER BY ss.last_assessment_date DESC
-            LIMIT 10
-        """)
-        recent_submissions = cursor.fetchall()
         cursor.close()
         connection.close()
         admin_data = {
@@ -855,10 +897,135 @@ def register_routes(app):
             "low_risk": low_risk,
             "critical_cases": critical_cases,
             "intervention_required": intervention_required,
-            "total_surveys": total_surveys,
-            "recent_submissions": recent_submissions
+            "total_surveys": total_surveys
         }
         return render_template("admin_dashboard.html", data=admin_data)
+
+    @app.route("/admin/critical-cases")
+    @role_required('admin')
+    def admin_critical_cases():
+        search = request.args.get('search', '').strip()
+        risk_level = request.args.get('risk_level', 'all').lower()
+        intervention = request.args.get('intervention', 'all').lower()
+        appointment_status = request.args.get('appointment_status', 'all').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        query = """
+            SELECT u.name, u.email, s.student_id_number, ss.risk_level, ss.overall_score, ss.last_assessment_date
+            FROM survey_summary ss
+            JOIN students s ON ss.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN appointments a ON s.id = a.student_id
+            WHERE ss.risk_level = 'High' OR ss.action_required = TRUE
+        """
+        params = []
+        
+        if search:
+            query += " AND (u.name LIKE %s OR s.student_id_number LIKE %s)"
+            params.extend([f"%{search}%", f"%{search}%"])
+
+        if risk_level != 'all':
+            query += " AND ss.risk_level = %s"
+            params.append(risk_level.capitalize())
+
+        if intervention != 'all':
+            query += " AND ss.action_required = %s"
+            params.append(intervention == 'yes')
+
+        if appointment_status != 'all':
+            query += " AND a.status = %s"
+            params.append(appointment_status)
+
+        query += " ORDER BY ss.last_assessment_date DESC"
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        cases = []
+        for row in rows:
+            cases.append({
+                "name": row[0],
+                "email": row[1],
+                "student_id_number": row[2],
+                "risk_level": row[3],
+                "overall_score": float(row[4]) if row[4] else None,
+                "last_assessment_date": row[5]
+            })
+
+        filters = {
+            "search": search,
+            "risk_level": risk_level,
+            "intervention": intervention,
+            "appointment_status": appointment_status
+        }
+        return render_template("admin_critical_cases.html", cases=cases, filters=filters)
+
+    @app.route("/admin/counselor-workload")
+    @role_required('admin')
+    def admin_counselor_workload():
+        search = request.args.get('search', '').strip()
+        workload_level = request.args.get('workload_level', 'all').lower()
+        sort_by = request.args.get('sort_by', 'assigned_desc').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        
+        query = """
+            SELECT 
+                u.name AS counselor_name,
+                COUNT(DISTINCT CASE WHEN ca.status = 'active' THEN ca.student_id END) AS assigned_students,
+                COUNT(DISTINCT CASE WHEN a.status = 'scheduled' THEN a.id END) AS scheduled_appointments
+            FROM counselors c
+            JOIN users u ON c.user_id = u.id
+            LEFT JOIN counselor_assignments ca ON c.id = ca.counselor_id
+            LEFT JOIN appointments a ON c.id = a.counselor_id AND a.appointment_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        """
+        params = []
+
+        if search:
+            query += " WHERE u.name LIKE %s"
+            params.append(f"%{search}%")
+
+        query += " GROUP BY c.id, u.name"
+
+        if workload_level != 'all':
+            query += " HAVING "
+            if workload_level == 'low':
+                query += "assigned_students < 6"
+            elif workload_level == 'medium':
+                query += "assigned_students BETWEEN 6 AND 15"
+            else:
+                query += "assigned_students > 15"
+
+        if sort_by == 'assigned_desc':
+            query += " ORDER BY assigned_students DESC"
+        elif sort_by == 'assigned_asc':
+            query += " ORDER BY assigned_students ASC"
+        else:
+            query += " ORDER BY counselor_name ASC"
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        workload = []
+        for row in rows:
+            workload.append({
+                "counselor_name": row[0],
+                "assigned_students": row[1] or 0,
+                "scheduled_appointments": row[2] or 0
+            })
+
+        filters = {
+            "search": search,
+            "workload_level": workload_level,
+            "sort_by": sort_by
+        }
+        return render_template("admin_counselor_workload.html", workload=workload, filters=filters)
 
     @app.route("/api/admin/risk-distribution")
     @role_required('admin')
@@ -974,11 +1141,11 @@ def register_routes(app):
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT u.name, u.email, s.student_id_number, ss.overall_score, ss.last_assessment_date, ss.suicidal_ideation_indicator
+            SELECT u.name, u.email, s.student_id_number, ss.overall_score, ss.last_assessment_date, ss.suicidal_ideation_indicator, ss.risk_level
             FROM survey_summary ss
             JOIN students s ON ss.student_id = s.id
             JOIN users u ON s.user_id = u.id
-            WHERE ss.priority = 'Critical'
+            WHERE ss.risk_level = 'High' OR ss.action_required = TRUE
             ORDER BY ss.last_assessment_date DESC
         """)
         rows = cursor.fetchall()
@@ -992,7 +1159,8 @@ def register_routes(app):
                 "student_id_number": row[2],
                 "overall_score": float(row[3]) if row[3] else None,
                 "last_assessment_date": row[4].isoformat() if row[4] else None,
-                "suicidal_ideation_indicator": bool(row[5])
+                "suicidal_ideation_indicator": bool(row[5]) if row[5] else False,
+                "risk_level": row[6]
             })
         return jsonify(cases)
 

@@ -28,34 +28,89 @@
         background: var(--bg-primary);
         color: var(--text-primary);
         min-height: 100vh;
+        margin: 0;
       }
 
-      .navbar {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid var(--border-color);
-        padding: 0.75rem 0;
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 240px;
+        height: 100vh;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 1rem;
+        z-index: 1000;
+        overflow-y: auto;
       }
 
-      .navbar-brand {
+      .sidebar-brand {
         font-weight: 700;
-        color: var(--accent-teal) !important;
         font-size: 1.1rem;
+        color: var(--accent-teal);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 2rem;
+        padding-left: 0.5rem;
       }
 
-      .nav-link {
-        color: var(--text-secondary) !important;
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .sidebar-nav .nav-item {
+        margin-bottom: 0.25rem;
+      }
+
+      .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 8px;
         font-weight: 500;
         font-size: 0.9rem;
         transition: all 0.2s ease;
-        padding: 0.4rem 0.75rem;
-        border-radius: 8px;
       }
 
-      .nav-link:hover {
-        color: var(--accent-teal) !important;
-        background: rgba(13, 148, 136, 0.08);
+      .sidebar-nav .nav-link:hover {
+        background: rgba(13, 148, 136, 0.05);
+        color: var(--accent-teal);
+      }
+
+      .sidebar-nav .nav-link.active {
+        background: rgba(13, 148, 136, 0.1);
+        color: var(--accent-teal);
+        font-weight: 600;
+      }
+
+      .sidebar-nav .nav-icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .main-content {
+        margin-left: 240px;
+        padding: 1.5rem 0;
+      }
+
+      @media (max-width: 991.98px) {
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+          border-right: none;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
       }
 
       .header-section {
@@ -83,13 +138,6 @@
         color: var(--accent-teal);
         font-weight: 600;
         font-size: 1rem;
-      }
-
-      .header-cta {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        height: 100%;
       }
 
       .summary-card {
@@ -140,15 +188,17 @@
         margin-top: 0.25rem;
       }
 
-      .main-card {
+      .preview-card {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 12px;
         padding: 1.25rem;
         height: 100%;
+        display: flex;
+        flex-direction: column;
       }
 
-      .main-card .card-header {
+      .preview-card .card-header {
         padding: 0 0 1rem 0;
         margin-bottom: 1rem;
         border-bottom: 1px solid var(--border-color);
@@ -157,11 +207,22 @@
         gap: 0.5rem;
       }
 
-      .main-card .card-header h5 {
+      .preview-card .card-header h6 {
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.9rem;
         margin: 0;
         color: var(--text-primary);
+      }
+
+      .preview-card .card-header .view-all-link {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: var(--accent-teal);
+        text-decoration: none;
+      }
+
+      .preview-card .card-header .view-all-link:hover {
+        text-decoration: underline;
       }
 
       .header-icon {
@@ -190,7 +251,6 @@
       .badge-risk.high { background: #fee2e2; color: #991b1b; }
       .badge-risk.medium { background: #fef3c7; color: #92400e; }
       .badge-risk.low { background: #dcfce7; color: #15803d; }
-      .badge-risk.critical { background: #fee2e2; color: #991b1b; }
       .badge-risk.not-assessed { background: #f1f5f9; color: #475569; }
 
       .badge-priority {
@@ -210,24 +270,24 @@
       .table {
         color: var(--text-primary);
         margin-bottom: 0;
+        font-size: 0.85rem;
       }
 
       .table thead th {
         background: #f8fafc;
         color: var(--text-muted);
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         font-weight: 600;
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 0.75rem;
         border-bottom: 1px solid var(--border-color);
         white-space: nowrap;
       }
 
       .table tbody td {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 0.75rem;
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.9rem;
         vertical-align: middle;
       }
 
@@ -239,8 +299,8 @@
         color: var(--accent-teal);
         border: 1px solid rgba(13, 148, 136, 0.2);
         border-radius: 6px;
-        padding: 0.35rem 0.75rem;
-        font-size: 0.85rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
         font-weight: 600;
         text-decoration: none;
       }
@@ -250,281 +310,224 @@
         color: var(--accent-teal);
       }
 
-      .btn-success, .btn-danger, .btn-primary {
-        font-size: 0.85rem;
-        padding: 0.35rem 0.85rem;
-      }
-
       .empty-state {
         text-align: center;
-        padding: 2rem 1rem;
+        padding: 1rem;
         color: var(--text-muted);
-        font-size: 0.9rem;
-      }
-
-      .right-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-      }
-
-      .right-card:last-child {
-        margin-bottom: 0;
-      }
-
-      .right-card .card-header {
-        padding: 0 0 0.75rem 0;
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .right-card .card-header h6 {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin: 0;
-        color: var(--text-primary);
-      }
-
-      .reminder-box {
-        background: linear-gradient(135deg, #eff6ff, #e0e7ff);
-        border: 1px solid #c7d2fe;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-top: 1rem;
-      }
-
-      .reminder-box h6 {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.75rem;
-        color: #3730a3;
-      }
-
-      .reminder-box p {
         font-size: 0.85rem;
-        color: #475569;
-        margin: 0;
-        line-height: 1.5;
-      }
-
-      @media (max-width: 991.98px) {
-        .header-cta {
-          justify-content: flex-start;
-          margin-top: 1rem;
-          height: auto;
-        }
       }
     </style>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg">
-      <div class="container">
-        <a class="navbar-brand" href="{{ url_for('counselor_dashboard') }}">
-          &#x1F3E5; Counselor Portal
-        </a>
-        <div class="navbar-nav ms-auto gap-2">
-          <a class="nav-link active" href="{{ url_for('counselor_dashboard') }}">Dashboard</a>
-          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-        </div>
-      </div>
+    <nav class="sidebar">
+      <a class="sidebar-brand" href="{{ url_for('counselor_dashboard') }}">
+        &#x1F3E5; Counselor Portal
+      </a>
+      <ul class="sidebar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('counselor_dashboard') }}">
+            <span class="nav-icon">&#x1F3E5;</span>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_students') }}">
+            <span class="nav-icon">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
+            Assigned Students
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_requests') }}">
+            <span class="nav-icon">&#x1F4EB;</span>
+            Appointment Requests
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_appointments') }}">
+            <span class="nav-icon">&#x1F4C5;</span>
+            Scheduled Appointments
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('logout') }}">
+            <span class="nav-icon">&#x1F511;</span>
+            Logout
+          </a>
+        </li>
+      </ul>
     </nav>
 
-    <main class="container">
-      <div class="header-section">
-        <div class="row align-items-center">
-          <div class="col-lg-8">
-            <h1>Counselor Dashboard</h1>
-            <p class="subtitle">Manage student wellbeing, appointments, and priority cases</p>
-            {% if data.counselor_name %}
-              <p class="counselor-name">Welcome, {{ data.counselor_name }}</p>
-            {% endif %}
+    <main class="main-content">
+      <div class="container">
+        <div class="header-section">
+          <h1>Counselor Dashboard</h1>
+          <p class="subtitle">Manage student wellbeing, appointments, and priority cases</p>
+          {% if data.counselor_name %}
+            <p class="counselor-name">Welcome, {{ data.counselor_name }}</p>
+          {% endif %}
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card default">
+              <div class="label">Assigned Students</div>
+              <div class="value default">{{ data.total_students }}</div>
+              <div class="subtext">Active caseload</div>
+            </div>
           </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card high">
+              <div class="label">High Risk</div>
+              <div class="value high">{{ data.high_risk_students }}</div>
+              <div class="subtext">Needs attention</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card medium">
+              <div class="label">Medium Risk</div>
+              <div class="value medium">{{ data.medium_risk_students }}</div>
+              <div class="subtext">Monitor closely</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card low">
+              <div class="label">Low Risk</div>
+              <div class="value low">{{ data.low_risk_students }}</div>
+              <div class="subtext">Stable</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card default">
+              <div class="label">Requests</div>
+              <div class="value default">{{ data.appointment_requests|length }}</div>
+              <div class="subtext">Pending</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card default">
+              <div class="label">Upcoming</div>
+              <div class="value default">{{ data.upcoming_appointments|length }}</div>
+              <div class="subtext">Appointments</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
           <div class="col-lg-4">
-            <div class="header-cta">
-              <a href="{{ url_for('counselor_dashboard') }}" class="btn btn-sm" style="background: var(--accent-teal); color: white; border-radius: 8px;">
-                &#x1F50D; View All Cases
-              </a>
+            <div class="preview-card">
+              <div class="card-header">
+                <span class="header-icon students">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
+                <h6>Assigned Students</h6>
+                <a href="{{ url_for('counselor_students') }}" class="view-all-link">View All</a>
+              </div>
+              {% if data.assigned_students[:5] %}
+              <div class="table-responsive flex-grow-1">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Risk</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for student in data.assigned_students[:5] %}
+                    <tr>
+                      <td style="font-weight: 600;">{{ student[1] }}</td>
+                      <td>
+                        <span class="badge-risk {{ student[4]|lower|replace(' ', '-') }}">{{ student[4] or 'Not Assessed' }}</span>
+                      </td>
+                      <td style="text-align: center;">
+                        <a href="{{ url_for('counselor_student_detail', student_id=student[0]) }}" class="action-btn">View</a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <div class="empty-state">No students assigned yet</div>
+              {% endif %}
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-2">
-          <div class="summary-card default">
-            <div class="label">Assigned Students</div>
-            <div class="value default">{{ data.total_students }}</div>
-            <div class="subtext">Active caseload</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-2">
-          <div class="summary-card high">
-            <div class="label">High Risk</div>
-            <div class="value high">{{ data.high_risk_students }}</div>
-            <div class="subtext">Needs attention</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-2">
-          <div class="summary-card medium">
-            <div class="label">Medium Risk</div>
-            <div class="value medium">{{ data.medium_risk_students }}</div>
-            <div class="subtext">Monitor closely</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-2">
-          <div class="summary-card low">
-            <div class="label">Low Risk</div>
-            <div class="value low">{{ data.low_risk_students }}</div>
-            <div class="subtext">Stable</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-2">
-          <div class="summary-card default">
-            <div class="label">Upcoming</div>
-            <div class="value default">{{ data.upcoming_appointments|length }}</div>
-            <div class="subtext">Appointments</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-2">
-          <div class="summary-card default">
-            <div class="label">Completed</div>
-            <div class="value default">{{ data.completed_sessions }}</div>
-            <div class="subtext">Sessions</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-lg-8">
-          <div class="main-card">
-            <div class="card-header">
-              <span class="header-icon students">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
-              <h5>Assigned Students</h5>
-            </div>
-            <div class="table-responsive">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Student Name</th>
-                    <th>Risk Level</th>
-                    <th>Priority</th>
-                    <th>Last Assessment</th>
-                    <th style="text-align: center;">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for student in data.assigned_students %}
-                  <tr>
-                    <td style="font-weight: 600;">{{ student[1] }}</td>
-                    <td>
-                      <span class="badge-risk {{ student[4]|lower|replace(' ', '-') }}">
-                        {{ student[4] }}
-                      </span>
-                    </td>
-                    <td>
-                      <span class="badge-priority {{ student[6]|lower|replace(' ', '-') }}">
-                        {{ student[6] or 'Not Assigned' }}
-                      </span>
-                    </td>
-                    <td>{{ student[5].strftime('%Y-%m-%d') if student[5] else 'N/A' }}</td>
-                    <td style="text-align: center;">
-                      <a href="{{ url_for('counselor_student_detail', student_id=student[0]) }}" class="action-btn">View</a>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                  {% if not data.assigned_students %}
-                  <tr>
-                    <td colspan="5" class="empty-state">No students assigned yet</td>
-                  </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 d-flex flex-column">
-          <div class="right-card">
-            <div class="card-header">
-              <span class="header-icon requests">&#x1F4EB;</span>
-              <h6>Appointment Requests</h6>
-            </div>
-            {% if data.appointment_requests %}
-            <div class="table-responsive">
-              <table class="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Date</th>
-                    <th style="text-align: center;">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for req in data.appointment_requests %}
-                  <tr>
-                    <td style="font-weight: 600; font-size: 0.85rem;">{{ req[1] }}</td>
-                    <td style="font-size: 0.85rem;">{{ req[2].strftime('%m/%d %H:%M') if req[2] else 'N/A' }}</td>
-                    <td style="font-size: 0.85rem;">
-                      <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-success btn-sm py-0 px-2">✓</button>
-                      </form>
-                      <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-danger btn-sm py-0 px-2 ms-1">✗</button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            {% else %}
-            <div class="empty-state py-2">No pending requests</div>
-            {% endif %}
           </div>
 
-          <div class="right-card">
-            <div class="card-header">
-              <span class="header-icon appointments">&#x1F4C5;</span>
-              <h6>My Scheduled Appointments</h6>
+          <div class="col-lg-4">
+            <div class="preview-card">
+              <div class="card-header">
+                <span class="header-icon requests">&#x1F4EB;</span>
+                <h6>Appointment Requests</h6>
+                <a href="{{ url_for('counselor_requests') }}" class="view-all-link">View All</a>
+              </div>
+              {% if data.appointment_requests[:5] %}
+              <div class="table-responsive flex-grow-1">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Date</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for req in data.appointment_requests[:5] %}
+                    <tr>
+                      <td style="font-weight: 600;">{{ req[1] }}</td>
+                      <td style="font-size: 0.8rem;">{{ req[2].strftime('%m/%d') if req[2] else 'N/A' }}</td>
+                      <td style="text-align: center;">
+                        <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                          <button type="submit" class="btn btn-success btn-sm py-0 px-1">✓</button>
+                        </form>
+                        <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                          <button type="submit" class="btn btn-danger btn-sm py-0 px-1 ms-1">✗</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <div class="empty-state">No pending requests</div>
+              {% endif %}
             </div>
-            {% if data.my_appointments %}
-            <div class="table-responsive">
-              <table class="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Date</th>
-                    <th style="text-align: center;">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for appt in data.my_appointments %}
-                  <tr>
-                    <td style="font-weight: 600; font-size: 0.85rem;">{{ appt[1] }}</td>
-                    <td style="font-size: 0.85rem;">{{ appt[2].strftime('%m/%d %H:%M') if appt[2] else 'N/A' }}</td>
-                    <td style="text-align: center;">
-                      <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST">
-                        <button type="submit" class="btn btn-primary btn-sm py-0 px-2">Complete</button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            {% else %}
-            <div class="empty-state py-2">No appointments scheduled</div>
-            {% endif %}
           </div>
 
-          <div class="reminder-box">
-            <h6>&#x1F4A1; Quick Guidance</h6>
-            <p>High-risk students should be prioritized for immediate follow-up. Review appointment requests promptly to maintain response times.</p>
+          <div class="col-lg-4">
+            <div class="preview-card">
+              <div class="card-header">
+                <span class="header-icon appointments">&#x1F4C5;</span>
+                <h6>Scheduled Appointments</h6>
+                <a href="{{ url_for('counselor_appointments') }}" class="view-all-link">View All</a>
+              </div>
+              {% if data.my_appointments[:5] %}
+              <div class="table-responsive flex-grow-1">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Date</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for appt in data.my_appointments[:5] %}
+                    <tr>
+                      <td style="font-weight: 600;">{{ appt[1] }}</td>
+                      <td style="font-size: 0.8rem;">{{ appt[2].strftime('%m/%d') if appt[2] else 'N/A' }}</td>
+                      <td style="text-align: center;">
+                        <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST">
+                          <button type="submit" class="btn btn-primary btn-sm py-0 px-1">Complete</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <div class="empty-state">No appointments scheduled</div>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
