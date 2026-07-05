@@ -1113,9 +1113,9 @@ def register_routes(app):
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT DATE_FORMAT(survey_completion_date, '%%Y-%%m') as month_key, COUNT(*) as survey_count
+            SELECT DATE_FORMAT(survey_completion_date, '%Y-%m') as month_key, COUNT(*) as survey_count
             FROM survey_summary
-            WHERE survey_completion_date >= DATE_SUB(DATE_FORMAT(NOW(), '%%Y-%%m-01'), INTERVAL 5 MONTH)
+            WHERE survey_completion_date >= DATE_SUB(DATE_FORMAT(NOW(), '%Y-%m-01'), INTERVAL 5 MONTH)
             GROUP BY month_key
             ORDER BY month_key ASC
         """)
