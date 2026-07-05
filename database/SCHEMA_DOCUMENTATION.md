@@ -89,8 +89,7 @@ This document describes the complete MySQL database schema for the Student Menta
 | id | INT | PRIMARY KEY, AUTO_INCREMENT | Unique student identifier |
 | user_id | INT | FOREIGN KEY, UNIQUE | Links to users table |
 | student_id_number | VARCHAR(50) | UNIQUE | University ID number |
-| major | VARCHAR(100) | NULL | Field of study |
-| year | ENUM | DEFAULT 'Freshman' | Academic year classification |
+| year | ENUM | DEFAULT 'Level 100' | Academic level classification |
 | date_of_birth | DATE | NULL | For age-based interventions |
 | phone | VARCHAR(20) | NULL | Contact information |
 | emergency_contact_name | VARCHAR(255) | NULL | Emergency contact person |

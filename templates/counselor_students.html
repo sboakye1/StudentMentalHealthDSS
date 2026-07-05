@@ -310,30 +310,37 @@
 
         <form method="GET" class="filter-form mb-3">
           <div class="row g-2 filter-row">
-            <div class="col-md-5">
+            <div class="col-md-4">
               <input type="text" name="search" class="form-control" placeholder="Search student name..." value="{{ filters.search or '' }}">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <select name="risk_level" class="form-select">
-                <option value="all" {% if filters.risk_level == 'all' or not filters.risk_level %}selected{% endif %}>All Risk Levels</option>
+                <option value="all" {% if filters.risk_level == 'all' or not filters.risk_level %}selected{% endif %}>All Risk</option>
                 <option value="high" {% if filters.risk_level == 'high' %}selected{% endif %}>High</option>
                 <option value="medium" {% if filters.risk_level == 'medium' %}selected{% endif %}>Medium</option>
                 <option value="low" {% if filters.risk_level == 'low' %}selected{% endif %}>Low</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <select name="priority" class="form-select">
-                <option value="all" {% if filters.priority == 'all' or not filters.priority %}selected{% endif %}>All Priorities</option>
+                <option value="all" {% if filters.priority == 'all' or not filters.priority %}selected{% endif %}>All Priority</option>
                 <option value="critical" {% if filters.priority == 'critical' %}selected{% endif %}>Critical</option>
                 <option value="medium" {% if filters.priority == 'medium' %}selected{% endif %}>Medium</option>
                 <option value="low" {% if filters.priority == 'low' %}selected{% endif %}>Low</option>
               </select>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
+              <select name="intervention" class="form-select">
+                <option value="all" {% if filters.intervention == 'all' or not filters.intervention %}selected{% endif %}>Intervention</option>
+                <option value="yes" {% if filters.intervention == 'yes' %}selected{% endif %}>Yes</option>
+                <option value="no" {% if filters.intervention == 'no' %}selected{% endif %}>No</option>
+              </select>
+            </div>
+            <div class="col-md-2">
               <button type="submit" class="btn btn-sm w-100" style="background: var(--accent-teal); color: white;">Go</button>
             </div>
           </div>
-          {% if filters.search or filters.risk_level != 'all' or filters.priority != 'all' %}
+          {% if filters.search or filters.risk_level != 'all' or filters.priority != 'all' or filters.intervention != 'all' %}
           <div class="row">
             <div class="col-12">
               <a href="{{ url_for('counselor_students') }}" class="btn btn-outline-secondary btn-sm">Reset Filters</a>

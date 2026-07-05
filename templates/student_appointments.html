@@ -113,11 +113,28 @@
         }
       }
 
+      .header-section {
+        padding: 2rem 0 1rem;
+      }
+
+      .header-section h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+      }
+
+      .header-section .subtitle {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
       .main-card {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 12px;
         padding: 1.25rem;
+        margin-bottom: 1.5rem;
       }
 
       .main-card .card-header {
@@ -146,7 +163,10 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.appointments { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
+      .header-icon.pending { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
+      .header-icon.scheduled { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); }
+      .header-icon.completed { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
+      .header-icon.cancelled { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
 
       .badge-status {
         padding: 0.35rem 0.75rem;
@@ -157,6 +177,7 @@
         letter-spacing: 0.04em;
       }
 
+      .badge-status.pending { background: #fef3c7; color: #92400e; }
       .badge-status.scheduled { background: #eff6ff; color: #1d4ed8; }
       .badge-status.completed { background: #dcfce7; color: #15803d; }
       .badge-status.cancelled { background: #f1f5f9; color: #475569; }
@@ -164,11 +185,12 @@
       .table {
         color: var(--text-primary);
         margin-bottom: 0;
+        font-size: 0.9rem;
       }
 
       .table thead th {
         background: #f8fafc;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -185,7 +207,7 @@
         vertical-align: middle;
       }
 
-      .table tbody tr:hover { background: rgba(148, 163, 184, 0.04); }
+      .table tbody tr:hover { background: rgba(37, 99, 235, 0.03); }
       .table tbody tr:last-child td { border-bottom: none; }
 
       .empty-state {
@@ -193,6 +215,24 @@
         padding: 2rem 1rem;
         color: var(--text-muted);
         font-size: 0.9rem;
+      }
+
+      .notes-box {
+        background: #f8fafc;
+        border-left: 3px solid var(--accent-blue);
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        border-radius: 0 6px 6px 0;
+        font-size: 0.85rem;
+      }
+
+      .rejection-box {
+        background: #fef2f2;
+        border-left: 3px solid var(--accent-rose);
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        border-radius: 0 6px 6px 0;
+        font-size: 0.85rem;
       }
 
       .btn-back {
@@ -209,6 +249,16 @@
       .btn-back:hover {
         background: rgba(37, 99, 235, 0.2);
         color: var(--accent-blue);
+      }
+
+      .section-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
     </style>
   </head>
@@ -263,12 +313,24 @@
           </a>
         </div>
 
+        {% set pending = [] %}
+        {% set scheduled = [] %}
+        {% set completed = [] %}
+        {% set cancelled = [] %}
+        {% for appt in appointments %}
+          {% if appt[1] == 'pending' %}{% set _ = pending.append(appt) %}
+          {% elif appt[1] == 'scheduled' %}{% set _ = scheduled.append(appt) %}
+          {% elif appt[1] == 'completed' %}{% set _ = completed.append(appt) %}
+          {% else %}{% set _ = cancelled.append(appt) %}
+          {% endif %}
+        {% endfor %}
+
+        {% if pending %}
         <div class="main-card">
           <div class="card-header">
-            <span class="header-icon appointments">&#x1F4C6;</span>
-            <h5>Appointment History</h5>
+            <span class="header-icon pending">&#x23F3;</span>
+            <h5 class="section-title">Pending Requests <span class="badge bg-warning ms-2">{{ pending|length }}</span></h5>
           </div>
-          {% if appointments %}
           <div class="table-responsive">
             <table class="table">
               <thead>
@@ -276,31 +338,138 @@
                   <th>Date</th>
                   <th>Time</th>
                   <th>Type</th>
-                  <th>Status</th>
                   <th>Counselor</th>
                 </tr>
               </thead>
               <tbody>
-                {% for appt in appointments %}
+                {% for appt in pending %}
                 <tr>
                   <td style="font-weight: 500;">{{ appt[0].strftime('%Y-%m-%d') if appt[0] else 'N/A' }}</td>
                   <td>{{ appt[0].strftime('%H:%M') if appt[0] else 'N/A' }}</td>
                   <td>{{ appt[2] or 'N/A' }}</td>
-                  <td>
-                    <span class="badge-status {% if appt[1] == 'scheduled' %}scheduled{% elif appt[1] == 'completed' %}completed{% else %}cancelled{% endif %}">
-                      {{ appt[1] or 'Unknown' }}
-                    </span>
-                  </td>
                   <td>{{ appt[3] or 'Unassigned' }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-          {% else %}
-          <div class="empty-state py-4">No appointment history yet</div>
-          {% endif %}
         </div>
+        {% endif %}
+
+        {% if scheduled %}
+        <div class="main-card">
+          <div class="card-header">
+            <span class="header-icon scheduled">&#x1F4C5;</span>
+            <h5 class="section-title">Upcoming Appointments <span class="badge bg-primary ms-2">{{ scheduled|length }}</span></h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Type</th>
+                  <th>Counselor</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for appt in scheduled %}
+                <tr>
+                  <td style="font-weight: 500;">{{ appt[0].strftime('%Y-%m-%d') if appt[0] else 'N/A' }}</td>
+                  <td>{{ appt[0].strftime('%H:%M') if appt[0] else 'N/A' }}</td>
+                  <td>{{ appt[2] or 'N/A' }}</td>
+                  <td>{{ appt[3] or 'Unassigned' }}</td>
+                  <td><span class="badge-status scheduled">Scheduled</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if completed %}
+        <div class="main-card">
+          <div class="card-header">
+            <span class="header-icon completed">&#x2713;</span>
+            <h5 class="section-title">Completed Appointments <span class="badge bg-success ms-2">{{ completed|length }}</span></h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Type</th>
+                  <th>Counselor</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for appt in completed %}
+                <tr>
+                  <td style="font-weight: 500;">{{ appt[0].strftime('%Y-%m-%d') if appt[0] else 'N/A' }}</td>
+                  <td>{{ appt[0].strftime('%H:%M') if appt[0] else 'N/A' }}</td>
+                  <td>{{ appt[2] or 'N/A' }}</td>
+                  <td>{{ appt[3] or 'Unassigned' }}</td>
+                  <td>
+                    {% if appt[4] %}
+                    <div class="notes-box">{{ appt[4] }}</div>
+                    {% else %}
+                    <span style="color: var(--text-muted);">No notes</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if cancelled %}
+        <div class="main-card">
+          <div class="card-header">
+            <span class="header-icon cancelled">&#x1F6AB;</span>
+            <h5 class="section-title">Cancelled / Rejected Appointment <span class="badge bg-secondary ms-2">{{ cancelled|length }}</span></h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Counselor</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for appt in cancelled %}
+                <tr>
+                  <td style="font-weight: 500;">{{ appt[0].strftime('%Y-%m-%d') if appt[0] else 'N/A' }}</td>
+                  <td>{{ appt[2] or 'N/A' }}</td>
+                  <td>{{ appt[3] or 'Unassigned' }}</td>
+                  <td>
+                    {% if appt[5] %}
+                    <div class="rejection-box">{{ appt[5] }}</div>
+                    {% else %}
+                    <span style="color: var(--text-muted);">No reason provided</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if not appointments %}
+        <div class="main-card">
+          <div class="empty-state py-4">No appointment history yet. <a href="{{ url_for('student_appointment') }}">Request an appointment</a>.</div>
+        </div>
+        {% endif %}
       </div>
     </main>
 

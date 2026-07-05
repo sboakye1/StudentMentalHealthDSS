@@ -17,8 +17,8 @@ INSERT IGNORE INTO counselors (user_id, license_number, specialization, bio, cre
 VALUES (@counselor_user_id, 'LIC-001', 'Clinical Psychology', 'Licensed counselor specializing in student mental health', 'PhD Clinical Psychology, 10 years experience', 25, 0, TRUE);
 
 -- Student profile (only insert if student doesn't exist)
-INSERT IGNORE INTO students (user_id, student_id_number, major, year, is_at_risk)
-VALUES (@student_user_id, 'STU-2024-001', 'Computer Science', 'Sophomore', FALSE);
+INSERT IGNORE INTO students (user_id, student_id_number, year, is_at_risk)
+VALUES (@student_user_id, 'STU-2024-001', 'Level 200', FALSE);
 
 -- Assign student to counselor (only insert if not exists)
 SET @counselor_id = (SELECT id FROM counselors WHERE user_id = @counselor_user_id);

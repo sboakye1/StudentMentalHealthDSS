@@ -447,7 +447,9 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
             <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Student Wellness Dashboard</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Track your wellbeing, survey results, and support options</p>
+            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">
+              Student: {{ data.name }} &middot; Assigned Counselor: {{ data.assigned_counselor if data.assigned_counselor else 'Not yet assigned' }}
+            </p>
           </div>
           <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
             &#x1F511; Logout
@@ -500,7 +502,7 @@
           <div class="main-card">
             <div class="card-header">
               <span class="header-icon wellness">&#x1F4CA;</span>
-              <h5>DSS Wellness Summary</h5>
+              <h5>Wellness Summary</h5>
             </div>
             <div class="info-row">
               <span class="info-label">Risk Level</span>
@@ -534,10 +536,23 @@
                 {% endif %}
               </span>
             </div>
-            <div class="info-row">
-              <span class="info-label">Recommendation</span>
-              <span class="info-value" style="text-align: right;">{{ data.recommendation }}</span>
+            <hr style="margin: 1rem 0; border-color: var(--border-color);">
+            <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+              <span class="info-label">Wellness Summary</span>
+              <span class="info-value" style="text-align: left; font-weight: 400; font-size: 0.95rem;">
+                {{ data.recommendation }}
+              </span>
             </div>
+            {% if data.next_steps %}
+            <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+              <span class="info-label">Recommended Next Steps</span>
+              <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                {% for step in data.next_steps %}
+                <li>{{ step }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
           </div>
         </div>
 

@@ -193,8 +193,7 @@ def register_routes(app):
             password = request.form.get("password", "")
             confirm_password = request.form.get("confirm_password", "")
             student_id_number = request.form.get("student_id_number", "").strip()
-            major = request.form.get("major", "").strip()
-            year = request.form.get("year", "Freshman")
+            year = request.form.get("year", "Level 100")
             phone = request.form.get("phone", "").strip()
 
             errors = []
@@ -218,7 +217,7 @@ def register_routes(app):
                 connection.close()
                 return render_template("register.html", errors=errors, form={
                     "name": name, "email": email, "student_id_number": student_id_number,
-                    "major": major, "year": year, "phone": phone
+                    "year": year, "phone": phone
                 })
 
             cursor.execute(
@@ -227,8 +226,8 @@ def register_routes(app):
             )
             user_id = cursor.lastrowid
             cursor.execute(
-                "INSERT INTO students (user_id, student_id_number, major, year, phone) VALUES (%s, %s, %s, %s, %s)",
-                (user_id, student_id_number, major, year, phone)
+                "INSERT INTO students (user_id, student_id_number, year, phone) VALUES (%s, %s, %s, %s)",
+                (user_id, student_id_number, year, phone)
             )
             student_id = cursor.lastrowid
             counselor_id = get_available_counselors()
@@ -276,6 +275,17 @@ def register_routes(app):
             WHERE s.id = %s
         """, (student_id, student_id))
         result = cursor.fetchone()
+
+        cursor.execute("SELECT assigned_counselor_id FROM students WHERE id = %s", (student_id,))
+        assigned_counselor_row = cursor.fetchone()
+        assigned_counselor_id = assigned_counselor_row[0] if assigned_counselor_row and assigned_counselor_row[0] else None
+        
+        assigned_counselor_name = None
+        if assigned_counselor_id:
+            cursor.execute("SELECT u.name FROM counselors c JOIN users u ON c.user_id = u.id WHERE c.id = %s", (assigned_counselor_id,))
+            counselor_result = cursor.fetchone()
+            assigned_counselor_name = counselor_result[0] if counselor_result else None
+
         cursor.execute("""
             SELECT appointment_date, status
             FROM appointments
@@ -286,16 +296,51 @@ def register_routes(app):
         upcoming_appointment = cursor.fetchone()
         cursor.close()
         connection.close()
+
+        risk_level = result[2] if result and result[2] else None
+
+        wellness_summary = ""
+        next_steps = []
+        if risk_level == 'Low':
+            wellness_summary = "You seem to be doing well overall. Keep maintaining healthy habits such as rest, good study balance, social support, and taking breaks when needed. If anything starts to feel overwhelming, you can always retake the survey or request support."
+            next_steps = [
+                "Keep monitoring your wellbeing",
+                "Retake the survey when needed",
+                "Use healthy routines and stress-management habits"
+            ]
+        elif risk_level == 'Medium':
+            wellness_summary = "Your responses suggest that you may be dealing with some stress or emotional pressure. It may help to pay closer attention to your sleep, stress level, workload, and emotional wellbeing. Consider speaking with a counselor if these challenges continue."
+            next_steps = [
+                "Retake the survey after some time",
+                "Consider booking an appointment with your counselor",
+                "Monitor your stress and emotional wellbeing"
+            ]
+        elif risk_level == 'High':
+            wellness_summary = "Your responses suggest that you may need additional support at this time. It would be a good idea to speak with a counselor as soon as possible so you can receive guidance and support. You do not have to handle everything alone."
+            next_steps = [
+                "Request a counselor appointment soon",
+                "Reach out for support as early as possible",
+                "Do not ignore persistent stress, anxiety, or emotional difficulty"
+            ]
+        else:
+            wellness_summary = "Take the wellness survey to receive personalized recommendations for your mental health."
+            next_steps = [
+                "Complete your mental health survey",
+                "Review your results and recommendations"
+            ]
+
         dashboard_data = {
             "name": result[0] if result else "Student",
             "score": result[1] if result and result[1] else 0,
-            "risk_level": result[2] if result and result[2] else "Not Assessed",
+            "risk_level": risk_level if risk_level else "Not Assessed",
             "last_assessment": result[3] if result and result[3] else None,
             "priority": result[4] if result and result[4] else "Not Assigned",
-            "recommendation": result[5] if result and result[5] else "Complete a survey to receive a recommendation.",
+            "recommendation": wellness_summary,
+            "next_steps": next_steps,
             "intervention_required": bool(result[6]) if result else False,
             "total_surveys": result[7] if result else 0,
-            "upcoming_appointment": upcoming_appointment
+            "upcoming_appointment": upcoming_appointment,
+            "assigned_counselor": assigned_counselor_name
         }
         return render_template("student_dashboard.html", data=dashboard_data)
 
@@ -307,7 +352,7 @@ def register_routes(app):
         cursor = connection.cursor()
         cursor.execute("""
             SELECT a.appointment_date, a.status, a.appointment_type,
-                   COALESCE(u.name, 'Unassigned') as counselor_name
+                   COALESCE(u.name, 'Unassigned') as counselor_name, a.meeting_notes, a.rejection_reason
             FROM appointments a
             LEFT JOIN counselors c ON a.counselor_id = c.id
             LEFT JOIN users u ON c.user_id = u.id
@@ -402,7 +447,7 @@ def register_routes(app):
             assigned_counselor_id = student_row[0] if student_row else None
             cursor.execute("""
                 INSERT INTO appointments (student_id, counselor_id, appointment_date, appointment_type, status, meeting_notes)
-                VALUES (%s, %s, %s, %s, 'scheduled', %s)
+                VALUES (%s, %s, %s, %s, 'pending', %s)
             """, (student_id, assigned_counselor_id, appointment_datetime, appointment_type, reason))
             connection.commit()
             cursor.close()
@@ -500,7 +545,7 @@ def register_routes(app):
             FROM appointments a
             JOIN students s ON a.student_id = s.id
             JOIN users u ON s.user_id = u.id
-            WHERE a.counselor_id IS NULL AND a.status = 'scheduled'
+            WHERE (a.counselor_id IS NULL OR a.status = 'pending') AND a.status IN ('pending', 'scheduled')
             ORDER BY a.appointment_date ASC
         """)
         appointment_requests = cursor.fetchall()
@@ -527,6 +572,7 @@ def register_routes(app):
         search = request.args.get('search', '').strip()
         risk_level = request.args.get('risk_level', 'all').lower()
         priority = request.args.get('priority', 'all').lower()
+        intervention = request.args.get('intervention', 'all').lower()
         
         connection = get_connection()
         cursor = connection.cursor()
@@ -554,8 +600,8 @@ def register_routes(app):
             params = [counselor_id, counselor_id]
             
             if search:
-                query += " AND u.name LIKE %s"
-                params.append(f"%{search}%")
+                query += " AND (u.name LIKE %s OR s.student_id_number LIKE %s)"
+                params.extend([f"%{search}%", f"%{search}%"])
             if risk_level != 'all':
                 query += " AND ss.risk_level = %s"
                 params.append(risk_level.capitalize())
@@ -566,6 +612,9 @@ def register_routes(app):
                     query += " AND ss.risk_level = 'Medium'"
                 elif priority == 'low':
                     query += " AND ss.risk_level = 'Low'"
+            if intervention != 'all':
+                query += " AND ss.action_required = %s"
+                params.append(1 if intervention == 'yes' else 0)
             
             query += """
                 ORDER BY
@@ -581,7 +630,7 @@ def register_routes(app):
             students = cursor.fetchall()
         cursor.close()
         connection.close()
-        filters = {'search': search, 'risk_level': risk_level, 'priority': priority}
+        filters = {'search': search, 'risk_level': risk_level, 'priority': priority, 'intervention': intervention}
         return render_template("counselor_students.html", students=students, filters=filters)
 
     @app.route("/counselor/requests")
@@ -603,7 +652,7 @@ def register_routes(app):
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
-                WHERE a.counselor_id IS NULL AND a.status = 'scheduled'
+                WHERE (a.counselor_id IS NULL OR a.status = 'pending') AND a.status IN ('pending', 'scheduled')
             """
             params = []
             
@@ -637,7 +686,7 @@ def register_routes(app):
         appointments = []
         if counselor_id:
             query = """
-                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status
+                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status, a.meeting_notes, a.rejection_reason
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
@@ -670,7 +719,14 @@ def register_routes(app):
         counselor = cursor.fetchone()
         counselor_id = counselor[0] if counselor else None
         cursor.execute("""
-            SELECT s.id, s.student_id_number, u.name, u.email, ss.overall_score, ss.risk_level, ss.last_assessment_date
+            SELECT s.id, s.student_id_number, u.name, u.email, ss.overall_score, ss.risk_level, ss.last_assessment_date,
+                   CASE ss.risk_level
+                       WHEN 'High' THEN 'Critical'
+                       WHEN 'Medium' THEN 'Medium'
+                       WHEN 'Low' THEN 'Low'
+                       ELSE 'Not Assigned'
+                   END AS priority,
+                   ss.action_required, ss.recommendations
             FROM students s
             JOIN users u ON s.user_id = u.id
             LEFT JOIN survey_summary ss ON s.id = ss.student_id
@@ -823,8 +879,8 @@ def register_routes(app):
         counselor_id = counselor[0] if counselor else None
         cursor.execute("""
             UPDATE appointments
-            SET counselor_id = %s
-            WHERE id = %s AND counselor_id IS NULL AND status = 'scheduled'
+            SET counselor_id = %s, status = 'scheduled'
+            WHERE id = %s AND (counselor_id IS NULL OR status = 'pending')
         """, (counselor_id, appointment_id))
         connection.commit()
         cursor.close()
@@ -834,13 +890,18 @@ def register_routes(app):
     @app.route("/counselor/appointment/<int:appointment_id>/reject", methods=["POST"])
     @role_required('counselor')
     def counselor_reject_appointment(appointment_id):
+        user_id = session.get("user_id")
+        rejection_reason = request.form.get('rejection_reason', '').strip()
         connection = get_connection()
         cursor = connection.cursor()
+        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor = cursor.fetchone()
+        counselor_id = counselor[0] if counselor else None
         cursor.execute("""
             UPDATE appointments
-            SET status = 'cancelled'
-            WHERE id = %s AND counselor_id IS NULL AND status = 'scheduled'
-        """, (appointment_id,))
+            SET status = 'cancelled', rejection_reason = %s, counselor_id = %s
+            WHERE id = %s AND (counselor_id IS NULL OR status = 'pending')
+        """, (rejection_reason, counselor_id, appointment_id))
         connection.commit()
         cursor.close()
         connection.close()
@@ -849,13 +910,14 @@ def register_routes(app):
     @app.route("/counselor/appointment/<int:appointment_id>/complete", methods=["POST"])
     @role_required('counselor')
     def counselor_complete_appointment(appointment_id):
+        meeting_notes = request.form.get('meeting_notes', '').strip()
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("""
             UPDATE appointments
-            SET status = 'completed'
+            SET status = 'completed', meeting_notes = %s
             WHERE id = %s AND status = 'scheduled'
-        """, (appointment_id,))
+        """, (meeting_notes, appointment_id))
         connection.commit()
         cursor.close()
         connection.close()

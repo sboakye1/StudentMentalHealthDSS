@@ -157,28 +157,23 @@
             <label for="confirm_password" class="form-label">Confirm Password</label>
             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
           </div>
-          <div class="mb-3">
+<div class="mb-3">
             <label for="student_id_number" class="form-label">Student ID Number</label>
             <input type="text" class="form-control" id="student_id_number" name="student_id_number" required value="{{ form.student_id_number if form else '' }}">
-          </div>
-          <div class="mb-3">
-            <label for="major" class="form-label">Major</label>
-            <input type="text" class="form-control" id="major" name="major" required value="{{ form.major if form else '' }}">
-          </div>
-          <div class="mb-3">
-            <label for="year" class="form-label">Year</label>
+           </div>
+           <div class="mb-3">
+            <label for="year" class="form-label">Level</label>
             <select class="form-select" id="year" name="year">
-              <option value="Freshman" {% if form and form.year == 'Freshman' %}selected{% endif %}>Freshman</option>
-              <option value="Sophomore" {% if form and form.year == 'Sophomore' %}selected{% endif %}>Sophomore</option>
-              <option value="Junior" {% if form and form.year == 'Junior' %}selected{% endif %}>Junior</option>
-              <option value="Senior" {% if form and form.year == 'Senior' %}selected{% endif %}>Senior</option>
-              <option value="Graduate" {% if form and form.year == 'Graduate' %}selected{% endif %}>Graduate</option>
+              <option value="Level 100" {% if form and form.year == 'Level 100' %}selected{% endif %}>Level 100</option>
+              <option value="Level 200" {% if form and form.year == 'Level 200' %}selected{% endif %}>Level 200</option>
+              <option value="Level 300" {% if form and form.year == 'Level 300' %}selected{% endif %}>Level 300</option>
+              <option value="Level 400" {% if form and form.year == 'Level 400' %}selected{% endif %}>Level 400</option>
             </select>
-          </div>
-          <div class="mb-3">
+           </div>
+           <div class="mb-3">
             <label for="phone" class="form-label">Phone (optional)</label>
             <input type="tel" class="form-control" id="phone" name="phone" value="{{ form.phone if form else '' }}">
-          </div>
+           </div>
           <button type="submit" class="btn btn-register">Create Account</button>
         </form>
         <div class="register-footer">

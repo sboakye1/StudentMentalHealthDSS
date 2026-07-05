@@ -473,16 +473,16 @@
                     <tr>
                       <td style="font-weight: 600;">{{ req[1] }}</td>
                       <td style="font-size: 0.8rem;">{{ req[2].strftime('%m/%d') if req[2] else 'N/A' }}</td>
-                      <td style="text-align: center;">
-                        <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                          <button type="submit" class="btn btn-success btn-sm py-0 px-1">✓</button>
-                        </form>
-                        <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                          <button type="submit" class="btn btn-danger btn-sm py-0 px-1 ms-1">✗</button>
-                        </form>
-                      </td>
-                    </tr>
-                    {% endfor %}
+<td style="text-align: center;">
+                         <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                           <button type="submit" class="btn btn-success btn-sm py-0 px-1">✓</button>
+                         </form>
+                         <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline" onsubmit="return confirmRejectDashboard(this);">
+                           <button type="submit" class="btn btn-danger btn-sm py-0 px-1 ms-1">✗</button>
+                         </form>
+                       </td>
+                     </tr>
+                     {% endfor %}
                   </tbody>
                 </table>
               </div>
@@ -514,11 +514,11 @@
                     <tr>
                       <td style="font-weight: 600;">{{ appt[1] }}</td>
                       <td style="font-size: 0.8rem;">{{ appt[2].strftime('%m/%d') if appt[2] else 'N/A' }}</td>
-                      <td style="text-align: center;">
-                        <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST">
-                          <button type="submit" class="btn btn-primary btn-sm py-0 px-1">Complete</button>
-                        </form>
-                      </td>
+<td style="text-align: center;">
+                         <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST" onsubmit="return confirmCompleteDashboard(this);">
+                           <button type="submit" class="btn btn-primary btn-sm py-0 px-1">Complete</button>
+                         </form>
+                       </td>
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -534,5 +534,29 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function confirmRejectDashboard(form) {
+        const reason = prompt('Enter rejection reason (optional):');
+        if (reason !== null) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'rejection_reason';
+          input.value = reason;
+          form.appendChild(input);
+        }
+        return confirm('Reject this appointment request?');
+      }
+      function confirmCompleteDashboard(form) {
+        const notes = prompt('Enter meeting notes (optional):');
+        if (notes !== null) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'meeting_notes';
+          input.value = notes;
+          form.appendChild(input);
+        }
+        return confirm('Mark this appointment as completed?');
+      }
+    </script>
   </body>
 </html>
