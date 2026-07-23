@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Counselor - Student Mental Health DSS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --accent-teal: #0d9488;
+        --accent-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #ef4444;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 240px;
+        height: 100vh;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 1rem;
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .sidebar-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--accent-blue);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 2rem;
+        padding-left: 0.5rem;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .sidebar-nav .nav-item {
+        margin-bottom: 0.25rem;
+      }
+
+      .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-nav .nav-link:hover {
+        background: rgba(37, 99, 235, 0.05);
+        color: var(--accent-blue);
+      }
+
+      .sidebar-nav .nav-link.active {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent-blue);
+        font-weight: 600;
+      }
+
+      .sidebar-nav .nav-icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .main-content {
+        margin-left: 240px;
+        padding: 1.5rem 0;
+      }
+
+      @media (max-width: 991.98px) {
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+          border-right: none;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+      }
+
+      .form-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 640px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      }
+
+      .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 0.6rem 0.85rem;
+        font-size: 0.95rem;
+      }
+
+      .form-control:focus, .form-select:focus {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+      }
+
+      .form-control:disabled {
+        background: #f1f5f9;
+        color: var(--text-muted);
+      }
+
+      .btn-primary {
+        background: var(--accent-blue);
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+      }
+
+      .btn-primary:hover {
+        background: #1d4ed8;
+      }
+
+      .btn-outline-secondary {
+        border-radius: 8px;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="sidebar">
+      <a class="sidebar-brand" href="{{ url_for('admin_dashboard') }}">
+        &#x1F3E5; Admin Portal
+      </a>
+      <ul class="sidebar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+            <span class="nav-icon">&#x1F3E5;</span>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_reports') }}">
+            <span class="nav-icon">&#x1F4CA;</span>
+            Reports
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_critical_cases') }}">
+            <span class="nav-icon">&#x1F6A8;</span>
+            Critical Cases
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_counselor_workload') }}">
+            <span class="nav-icon">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
+            Counselor Workload
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('admin_manage_counselors') }}">
+            <span class="nav-icon">&#x1F465;</span>
+            Manage Counselors
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_add_counselor') }}">
+            <span class="nav-icon">&#x2795;</span>
+            Add Counselor
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('logout') }}">
+            <span class="nav-icon">&#x1F511;</span>
+            Logout
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <main class="main-content">
+      <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" role="alert" style="margin-top: 1rem;">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Edit Counselor</h1>
+            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Update counselor information</p>
+          </div>
+          <a href="{{ url_for('admin_manage_counselors') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
+            &#x2190; Back to Manage Counselors
+          </a>
+        </div>
+
+        <div class="form-card">
+          <form method="POST" action="{{ url_for('admin_edit_counselor', counselor_id=counselor.id) }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" required value="{{ counselor.name }}">
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="email" name="email" required value="{{ counselor.email }}">
+              </div>
+              <div class="col-md-6">
+                <label for="staff_id" class="form-label">Staff ID</label>
+                <input type="text" class="form-control" id="staff_id" value="{{ counselor.staff_id or 'N/A' }}" disabled>
+                <small class="text-muted">Staff ID cannot be changed.</small>
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="tel" class="form-control" id="phone" name="phone" value="{{ counselor.phone }}">
+              </div>
+              <div class="col-md-6">
+                <label for="office" class="form-label">Office</label>
+                <input type="text" class="form-control" id="office" name="office" value="{{ counselor.office }}">
+              </div>
+              <div class="col-md-6">
+                <label for="specialization" class="form-label">Specialization</label>
+                <input type="text" class="form-control" id="specialization" name="specialization" value="{{ counselor.specialization }}">
+              </div>
+            </div>
+            <div class="mt-4">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+              <a href="{{ url_for('admin_manage_counselors') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

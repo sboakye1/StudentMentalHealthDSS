@@ -158,6 +158,61 @@
           </div>
         </div>
       </section>
+
+      <section class="container mb-5">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div class="detail-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 2rem;">
+              <div class="text-center mb-4">
+                <h2 class="fw-bold" style="font-size: 1.75rem; color: var(--text-primary);">Need Someone to Talk To?</h2>
+                <p class="text-secondary mb-0" style="font-size: 1rem;">Share your concerns anonymously. Your identity is not required, and your message will only be visible to authorized counselors and administrators.</p>
+              </div>
+
+              {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                  {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+
+              {% if errors %}
+                {% for error in errors %}
+                  <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+              {% endif %}
+
+              <form method="POST" action="{{ url_for('home') }}">
+                <div class="mb-3">
+                  <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                  <select class="form-select" id="category" name="category" required style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 0.6rem 0.85rem;">
+                    <option value="">-- Select a category --</option>
+                    <option value="Academic Stress" {% if form.category == 'Academic Stress' %}selected{% endif %}>Academic Stress</option>
+                    <option value="Anxiety" {% if form.category == 'Anxiety' %}selected{% endif %}>Anxiety</option>
+                    <option value="Depression" {% if form.category == 'Depression' %}selected{% endif %}>Depression</option>
+                    <option value="Family Issues" {% if form.category == 'Family Issues' %}selected{% endif %}>Family Issues</option>
+                    <option value="Financial Problems" {% if form.category == 'Financial Problems' %}selected{% endif %}>Financial Problems</option>
+                    <option value="Relationships" {% if form.category == 'Relationships' %}selected{% endif %}>Relationships</option>
+                    <option value="Bullying" {% if form.category == 'Bullying' %}selected{% endif %}>Bullying</option>
+                    <option value="Mental Health" {% if form.category == 'Mental Health' %}selected{% endif %}>Mental Health</option>
+                    <option value="Other" {% if form.category == 'Other' %}selected{% endif %}>Other</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="message" class="form-label">Your Message <span class="text-danger">*</span></label>
+                  <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Share your concerns here..." style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 0.6rem 0.85rem;">{{ form.message if form else '' }}</textarea>
+                  <div class="form-text">Minimum 10 characters. Your identity will remain completely anonymous.</div>
+                </div>
+                <div class="mb-3 form-check">
+                  <input type="checkbox" class="form-check-input" id="is_urgent" name="is_urgent" {% if form.is_urgent %}checked{% endif %}>
+                  <label class="form-check-label" for="is_urgent">This situation is urgent.</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet)); border: none; border-radius: 10px; padding: 0.75rem 2rem; font-weight: 600;">Submit Anonymous Message</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="footer">

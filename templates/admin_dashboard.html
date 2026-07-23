@@ -293,6 +293,18 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_manage_counselors') }}">
+            <span class="nav-icon">&#x1F465;</span>
+            Manage Counselors
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin_add_counselor') }}">
+            <span class="nav-icon">&#x2795;</span>
+            Add Counselor
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('logout') }}">
             <span class="nav-icon">&#x1F511;</span>
             Logout
@@ -364,6 +376,27 @@
               <div class="label">Total Surveys</div>
               <div class="value default">{{ data.total_surveys }}</div>
               <div class="subtext">Completed</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card default">
+              <div class="label">Anonymous Messages</div>
+              <div class="value default">{{ data.total_anonymous }}</div>
+              <div class="subtext">Total</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card high">
+              <div class="label">New Anonymous</div>
+              <div class="value high">{{ data.new_anonymous }}</div>
+              <div class="subtext">Unread</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card high">
+              <div class="label">Urgent Anonymous</div>
+              <div class="value high">{{ data.urgent_anonymous }}</div>
+              <div class="subtext">Priority</div>
             </div>
           </div>
         </div>

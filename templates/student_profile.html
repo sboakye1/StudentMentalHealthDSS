@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request Appointment - Student Portal</title>
+    <title>My Profile - Student Mental Health DSS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -113,57 +113,53 @@
         }
       }
 
-      .card {
+      .form-card {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      }
-
-      .card h3 {
-        margin-top: 0;
-        color: var(--text-primary);
-        font-weight: 600;
-        font-size: 1.25rem;
-        margin-bottom: 1.5rem;
+        padding: 2rem;
+        max-width: 640px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       }
 
       .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
         color: var(--text-secondary);
-        font-weight: 500;
-        font-size: 0.9rem;
-        margin-bottom: 0.4rem;
       }
 
-      .btn-submit {
+      .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 0.6rem 0.85rem;
+        font-size: 0.95rem;
+      }
+
+      .form-control:focus, .form-select:focus {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+      }
+
+      .form-control:disabled, .form-select:disabled {
+        background: #f1f5f9;
+        color: var(--text-muted);
+      }
+
+      .btn-primary {
         background: var(--accent-blue);
-        color: white;
         border: none;
         border-radius: 8px;
-        padding: 0.5rem 1.25rem;
+        padding: 0.6rem 1.5rem;
         font-weight: 600;
-        font-size: 0.9rem;
       }
 
-      .btn-submit:hover {
+      .btn-primary:hover {
         background: #1d4ed8;
       }
 
-      .btn-cancel {
-        background: var(--border-color);
-        color: var(--text-secondary);
-        border: none;
+      .btn-outline-secondary {
         border-radius: 8px;
-        padding: 0.5rem 1.25rem;
         font-weight: 500;
-        font-size: 0.9rem;
-        text-decoration: none;
-      }
-
-      .btn-cancel:hover {
-        background: #cbd5e1;
-        color: var(--text-primary);
       }
     </style>
   </head>
@@ -186,7 +182,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('student_appointment') }}">
+          <a class="nav-link" href="{{ url_for('student_appointment') }}">
             <span class="nav-icon">&#x1F4C5;</span>
             Request Appointment
           </a>
@@ -198,7 +194,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('student_profile') }}">
+          <a class="nav-link active" href="{{ url_for('student_profile') }}">
             <span class="nav-icon">&#x1F464;</span>
             My Profile
           </a>
@@ -216,39 +212,58 @@
       <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Request Appointment</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Schedule a time to meet with your counselor</p>
+            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">My Profile</h1>
+            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Update your personal information</p>
           </div>
-          <a href="{{ url_for('student_dashboard') }}" class="btn-cancel">
-            &#x21A9; Back to Dashboard
+          <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
+            &#x2190; Back to Dashboard
           </a>
         </div>
 
-        <div class="card">
-          <h3>Appointment Request Form</h3>
-          <form action="{{ url_for('student_appointment') }}" method="POST">
-            <div class="mb-3">
-              <label for="preferred_date" class="form-label">Preferred Date</label>
-              <input type="date" class="form-control" id="preferred_date" name="preferred_date" required>
+        <div class="form-card">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="{{ url_for('student_profile') }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" required value="{{ student.name }}">
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" value="{{ student.email }}" disabled>
+              </div>
+              <div class="col-md-6">
+                <label for="student_id_number" class="form-label">Student ID</label>
+                <input type="text" class="form-control" id="student_id_number" value="{{ student.student_id_number }}" disabled>
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="phone" name="phone" value="{{ student.phone }}">
+              </div>
+              <div class="col-md-6">
+                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ student.date_of_birth }}">
+              </div>
+              <div class="col-md-6">
+                <label for="emergency_contact_name" class="form-label">Emergency Contact Name</label>
+                <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" value="{{ student.emergency_contact_name }}">
+              </div>
+              <div class="col-md-6">
+                <label for="emergency_contact_phone" class="form-label">Emergency Contact Phone</label>
+                <input type="tel" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" value="{{ student.emergency_contact_phone }}">
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="preferred_time" class="form-label">Preferred Time</label>
-              <input type="time" class="form-control" id="preferred_time" name="preferred_time" required>
+            <div class="mt-4">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+              <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
             </div>
-            <div class="mb-3">
-              <label for="appointment_type" class="form-label">Appointment Type</label>
-              <select class="form-select" id="appointment_type" name="appointment_type" required>
-                <option value="initial">Initial</option>
-                <option value="follow_up">Follow-up</option>
-                <option value="emergency">Emergency</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="reason" class="form-label">Reason for Appointment</label>
-              <textarea class="form-control" id="reason" name="reason" rows="4" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-submit">Submit Request</button>
-            <a href="{{ url_for('student_dashboard') }}" class="btn-cancel">Cancel</a>
           </form>
         </div>
       </div>

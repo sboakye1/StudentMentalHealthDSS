@@ -7,10 +7,26 @@ import csv
 from io import StringIO
 
 
+def get_user_is_active(user_id):
+    if not user_id:
+        return False
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT is_active FROM users WHERE id = %s", (user_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return bool(result[0]) if result else False
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
+            return redirect(url_for("login"))
+        if not get_user_is_active(session["user_id"]):
+            session.clear()
+            flash("Your account has been removed. Please contact the administrator.", "danger")
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated_function
@@ -24,6 +40,10 @@ def role_required(role):
                 return redirect(url_for("login"))
             if session.get("user_role") != role:
                 flash("You are not authorized to access that page. Please log in with the correct account.", "danger")
+                return redirect(url_for("login"))
+            if not get_user_is_active(session["user_id"]):
+                session.clear()
+                flash("Your account has been removed. Please contact the administrator.", "danger")
                 return redirect(url_for("login"))
             return f(*args, **kwargs)
         return decorated_function
@@ -99,6 +119,7 @@ def get_available_counselors():
         SELECT c.id, 
             (COALESCE(s.student_count, 0) + COALESCE(ca.assignment_count, 0)) as total_assigned
         FROM counselors c
+        JOIN users u ON c.user_id = u.id
         LEFT JOIN (
             SELECT assigned_counselor_id as counselor_id, COUNT(*) as student_count
             FROM students
@@ -111,6 +132,7 @@ def get_available_counselors():
             WHERE status = 'active'
             GROUP BY counselor_id
         ) ca ON c.id = ca.counselor_id
+        WHERE u.is_active = TRUE
         ORDER BY total_assigned ASC, c.id ASC
         LIMIT 1
     """)
@@ -249,9 +271,44 @@ def register_routes(app):
 
         return render_template("register.html")
 
-    @app.route("/")
+    @app.route("/", methods=["GET", "POST"])
     def home():
-        return render_template("index.html")
+        if request.method == "POST":
+            category = request.form.get("category", "").strip()
+            message = request.form.get("message", "").strip()
+            is_urgent = request.form.get("is_urgent") == "on"
+
+            errors = []
+            if not category:
+                errors.append("Please select a category.")
+            if not message or len(message.strip()) < 10:
+                errors.append("Message must be at least 10 characters long.")
+
+            if errors:
+                for error in errors:
+                    flash(error, "danger")
+                return render_template("index.html", errors=errors, form={"category": category, "message": message, "is_urgent": is_urgent})
+
+            connection = get_connection()
+            cursor = connection.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO anonymous_messages (category, message, is_urgent, status) VALUES (%s, %s, %s, 'New')",
+                    (category, message.strip(), is_urgent)
+                )
+                connection.commit()
+                flash("Your anonymous message has been received. Thank you for reaching out.", "success")
+                return redirect(url_for("home"))
+            except Exception as e:
+                connection.rollback()
+                flash("An error occurred while submitting your message. Please try again.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+
+            return render_template("index.html", errors=["Database error. Please try again."], form={"category": category, "message": message, "is_urgent": is_urgent})
+
+        return render_template("index.html", errors=None, form={})
 
     @app.route("/student/dashboard")
     @survey_required
@@ -455,6 +512,80 @@ def register_routes(app):
             return redirect(url_for("student_dashboard"))
         return render_template("student_appointment.html")
 
+    @app.route("/student/profile", methods=["GET", "POST"])
+    @login_required
+    def student_profile():
+        if session.get("user_role") != "student":
+            flash("You are not authorized to access this page.", "danger")
+            return redirect(url_for("student_dashboard"))
+
+        student_id = get_logged_in_student_id()
+        if not student_id:
+            flash("Student profile not found.", "danger")
+            return redirect(url_for("student_dashboard"))
+
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            phone = request.form.get("phone", "").strip()
+            date_of_birth = request.form.get("date_of_birth", "").strip()
+            emergency_contact_name = request.form.get("emergency_contact_name", "").strip()
+            emergency_contact_phone = request.form.get("emergency_contact_phone", "").strip()
+
+            errors = []
+            if not name:
+                errors.append("Full name is required.")
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute(
+                    "UPDATE users SET name = %s WHERE id = %s",
+                    (name, session["user_id"])
+                )
+                cursor.execute(
+                    "UPDATE students SET phone = %s, date_of_birth = %s, emergency_contact_name = %s, emergency_contact_phone = %s WHERE id = %s",
+                    (phone, date_of_birth or None, emergency_contact_name or None, emergency_contact_phone or None, student_id)
+                )
+                connection.commit()
+                flash("Profile updated successfully!", "success")
+                return redirect(url_for("student_profile"))
+            except Exception as e:
+                connection.rollback()
+                flash("An error occurred while updating your profile. Please try again.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT u.name, u.email, s.student_id_number, s.phone, s.date_of_birth,
+                   s.emergency_contact_name, s.emergency_contact_phone
+            FROM users u
+            JOIN students s ON u.id = s.user_id
+            WHERE s.id = %s
+        """, (student_id,))
+        student = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if not student:
+            flash("Student profile not found.", "danger")
+            return redirect(url_for("student_dashboard"))
+
+        student_data = {
+            "name": student[0],
+            "email": student[1],
+            "student_id_number": student[2],
+            "phone": student[3] or "",
+            "date_of_birth": student[4].strftime('%Y-%m-%d') if student[4] else "",
+            "emergency_contact_name": student[5] or "",
+            "emergency_contact_phone": student[6] or ""
+        }
+
+        return render_template("student_profile.html", student=student_data)
+
     @app.route("/counselor/dashboard")
     @role_required('counselor')
     def counselor_dashboard():
@@ -531,6 +662,10 @@ def register_routes(app):
                 WHERE counselor_id = %s AND status = 'completed'
             """, (counselor_id,))
             completed_sessions = cursor.fetchone()[0] or 0
+            cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
+            new_anonymous_messages = cursor.fetchone()[0] or 0
+            cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
+            urgent_anonymous_messages = cursor.fetchone()[0] or 0
             cursor.execute("""
                 SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status
                 FROM appointments a
@@ -561,7 +696,9 @@ def register_routes(app):
             "upcoming_appointments": upcoming_appointments,
             "completed_sessions": completed_sessions,
             "appointment_requests": appointment_requests,
-            "my_appointments": my_appointments
+            "my_appointments": my_appointments,
+            "new_anonymous_messages": new_anonymous_messages,
+            "urgent_anonymous_messages": urgent_anonymous_messages
         }
         return render_template("counselor_dashboard.html", data=counselor_data)
 
@@ -950,6 +1087,12 @@ def register_routes(app):
         intervention_required = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM survey_responses")
         total_surveys = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages")
+        total_anonymous = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
+        new_anonymous = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
+        urgent_anonymous = cursor.fetchone()[0]
         cursor.close()
         connection.close()
         admin_data = {
@@ -959,7 +1102,10 @@ def register_routes(app):
             "low_risk": low_risk,
             "critical_cases": critical_cases,
             "intervention_required": intervention_required,
-            "total_surveys": total_surveys
+            "total_surveys": total_surveys,
+            "total_anonymous": total_anonymous,
+            "new_anonymous": new_anonymous,
+            "urgent_anonymous": urgent_anonymous
         }
         return render_template("admin_dashboard.html", data=admin_data)
 
@@ -1511,3 +1657,836 @@ def register_routes(app):
         }
 
         return render_template("admin_student_report.html", data=student_data)
+
+    @app.route("/admin/student/<int:student_id>/transfer", methods=["GET", "POST"])
+    @role_required('admin')
+    def admin_transfer_counselor(student_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT s.id, u.name, s.student_id_number, s.assigned_counselor_id
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.id = %s
+        """, (student_id,))
+        student = cursor.fetchone()
+
+        if not student:
+            cursor.close()
+            connection.close()
+            flash("Student not found.", "danger")
+            return redirect(url_for("admin_reports"))
+
+        current_counselor_id = student[3]
+        current_counselor_name = None
+        if current_counselor_id:
+            cursor.execute("SELECT u.name FROM counselors c JOIN users u ON c.user_id = u.id WHERE c.id = %s", (current_counselor_id,))
+            counselor_row = cursor.fetchone()
+            current_counselor_name = counselor_row[0] if counselor_row else None
+
+        cursor.execute("""
+            SELECT c.id, u.name, c.specialization
+            FROM counselors c
+            JOIN users u ON c.user_id = u.id
+            WHERE u.is_active = TRUE AND c.id != %s
+            ORDER BY u.name ASC
+        """, (current_counselor_id or 0,))
+        available_counselors = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        if request.method == "POST":
+            new_counselor_id = request.form.get("new_counselor_id", "").strip()
+            reason = request.form.get("reason", "").strip()
+
+            errors = []
+            if not new_counselor_id:
+                errors.append("Please select a new counselor.")
+            if int(new_counselor_id) == current_counselor_id:
+                errors.append("The student is already assigned to this counselor.")
+
+            if errors:
+                for error in errors:
+                    flash(error, "danger")
+                return render_template("admin_transfer_counselor.html", student=student, current_counselor_name=current_counselor_name, available_counselors=available_counselors)
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute("DELETE FROM counselor_assignments WHERE student_id = %s AND status = 'transferred'", (student_id,))
+
+                if current_counselor_id:
+                    cursor.execute("""
+                        UPDATE counselor_assignments
+                        SET status = 'transferred', updated_at = CURRENT_TIMESTAMP
+                        WHERE student_id = %s AND counselor_id = %s AND status = 'active'
+                    """, (student_id, current_counselor_id))
+
+                cursor.execute("""
+                    INSERT INTO counselor_assignments (student_id, counselor_id, assignment_date, reason_for_assignment, status)
+                    VALUES (%s, %s, CURDATE(), %s, 'active')
+                """, (student_id, new_counselor_id, reason or 'Transferred by admin'))
+
+                cursor.execute("""
+                    UPDATE students SET assigned_counselor_id = %s WHERE id = %s
+                """, (new_counselor_id, student_id))
+
+                connection.commit()
+                flash("Counselor transferred successfully!", "success")
+                return redirect(url_for("admin_reports"))
+            except Exception as e:
+                connection.rollback()
+                flash("An error occurred while transferring the counselor. Please try again.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+
+            return render_template("admin_transfer_counselor.html", student=student, current_counselor_name=current_counselor_name, available_counselors=available_counselors)
+
+        return render_template("admin_transfer_counselor.html", student=student, current_counselor_name=current_counselor_name, available_counselors=available_counselors)
+
+    @app.route("/admin/add-counselor", methods=["GET", "POST"])
+    @role_required('admin')
+    def admin_add_counselor():
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email", "").strip()
+            staff_id = request.form.get("staff_id", "").strip()
+            phone = request.form.get("phone", "").strip()
+            office = request.form.get("office", "").strip()
+            specialization = request.form.get("specialization", "").strip()
+            password = request.form.get("password", "")
+            confirm_password = request.form.get("confirm_password", "")
+
+            errors = []
+            if not name or not email or not staff_id or not password or not confirm_password:
+                errors.append("All required fields must be filled in.")
+            if password != confirm_password:
+                errors.append("Passwords do not match.")
+            if len(password) < 6:
+                errors.append("Password must be at least 6 characters.")
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                errors.append("Email already registered.")
+
+            cursor.execute("SELECT id FROM counselors WHERE staff_id = %s", (staff_id,))
+            if cursor.fetchone():
+                errors.append("Staff ID already registered.")
+
+            cursor.close()
+            connection.close()
+
+            if errors:
+                return render_template("admin_add_counselor.html", errors=errors, form={
+                    "name": name, "email": email, "staff_id": staff_id,
+                    "phone": phone, "office": office, "specialization": specialization
+                })
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute(
+                    "INSERT INTO users (name, email, password_hash, role, is_active) VALUES (%s, %s, %s, 'counselor', TRUE)",
+                    (name, email, password)
+                )
+                new_user_id = cursor.lastrowid
+                cursor.execute(
+                    "INSERT INTO counselors (user_id, staff_id, phone, office, specialization) VALUES (%s, %s, %s, %s, %s)",
+                    (new_user_id, staff_id, phone, office, specialization)
+                )
+                connection.commit()
+                flash("Counselor added successfully!", "success")
+                return redirect(url_for("admin_manage_counselors"))
+            except Exception as e:
+                connection.rollback()
+                flash("An error occurred while adding the counselor. Please try again.", "danger")
+                return render_template("admin_add_counselor.html", errors=["Database error: " + str(e)], form={
+                    "name": name, "email": email, "staff_id": staff_id,
+                    "phone": phone, "office": office, "specialization": specialization
+                })
+            finally:
+                cursor.close()
+                connection.close()
+
+        return render_template("admin_add_counselor.html", errors=None, form={})
+
+    @app.route("/admin/counselors")
+    @role_required('admin')
+    def admin_manage_counselors():
+        search = request.args.get('search', '').strip()
+        status_filter = request.args.get('status', 'all').lower()
+        specialization_filter = request.args.get('specialization', 'all').strip()
+        sort_by = request.args.get('sort_by', 'name_asc').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT DISTINCT specialization 
+            FROM counselors 
+            WHERE specialization IS NOT NULL AND specialization != ''
+            ORDER BY specialization ASC
+        """)
+        specializations = [row[0] for row in cursor.fetchall()]
+
+        query = """
+            SELECT 
+                c.id,
+                u.name,
+                c.staff_id,
+                u.email,
+                c.phone,
+                c.specialization,
+                u.is_active,
+                COUNT(DISTINCT s.id) as assigned_count
+            FROM counselors c
+            JOIN users u ON c.user_id = u.id
+            LEFT JOIN students s ON s.assigned_counselor_id = c.id
+        """
+        params = []
+        conditions = []
+
+        if search:
+            conditions.append("(u.name LIKE %s OR u.email LIKE %s OR c.staff_id LIKE %s)")
+            params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
+
+        if status_filter != 'all':
+            conditions.append("u.is_active = %s")
+            params.append(status_filter == 'active')
+
+        if specialization_filter != 'all':
+            conditions.append("c.specialization = %s")
+            params.append(specialization_filter)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        query += " GROUP BY c.id, u.name, c.staff_id, u.email, c.phone, c.specialization, u.is_active"
+
+        if sort_by == 'name_asc':
+            query += " ORDER BY u.name ASC"
+        elif sort_by == 'name_desc':
+            query += " ORDER BY u.name DESC"
+        elif sort_by == 'students_desc':
+            query += " ORDER BY assigned_count DESC"
+        elif sort_by == 'students_asc':
+            query += " ORDER BY assigned_count ASC"
+        else:
+            query += " ORDER BY u.name ASC"
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+
+        counselors = []
+        for row in rows:
+            counselors.append({
+                "id": row[0],
+                "name": row[1],
+                "staff_id": row[2],
+                "email": row[3],
+                "phone": row[4],
+                "specialization": row[5],
+                "is_active": row[6],
+                "assigned_count": row[7] or 0
+            })
+
+        cursor.execute("SELECT COUNT(*) FROM counselors")
+        total_counselors = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM counselors c JOIN users u ON c.user_id = u.id WHERE u.is_active = TRUE")
+        active_counselors = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM counselors c JOIN users u ON c.user_id = u.id WHERE u.is_active = FALSE")
+        inactive_counselors = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM students WHERE assigned_counselor_id IS NOT NULL")
+        total_assigned = cursor.fetchone()[0]
+
+        cursor.close()
+        connection.close()
+
+        stats = {
+            "total": total_counselors,
+            "active": active_counselors,
+            "inactive": inactive_counselors,
+            "assigned": total_assigned
+        }
+
+        filters = {
+            "search": search,
+            "status": status_filter,
+            "specialization": specialization_filter,
+            "sort_by": sort_by
+        }
+
+        return render_template("admin_manage_counselors.html", counselors=counselors, stats=stats, filters=filters, specializations=specializations)
+
+    @app.route("/admin/counselor/<int:counselor_id>/activate", methods=["POST"])
+    @role_required('admin')
+    def admin_activate_counselor(counselor_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE users SET is_active = TRUE WHERE id = (SELECT user_id FROM counselors WHERE id = %s)", (counselor_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Counselor activated successfully.", "success")
+        return redirect(url_for("admin_manage_counselors"))
+
+    @app.route("/admin/counselor/<int:counselor_id>/deactivate", methods=["POST"])
+    @role_required('admin')
+    def admin_deactivate_counselor(counselor_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE users SET is_active = FALSE WHERE id = (SELECT user_id FROM counselors WHERE id = %s)", (counselor_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Counselor deactivated successfully.", "success")
+        return redirect(url_for("admin_manage_counselors"))
+
+    @app.route("/admin/counselor/<int:counselor_id>/reset-password", methods=["GET", "POST"])
+    @role_required('admin')
+    def admin_reset_counselor_password(counselor_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT u.name FROM users u JOIN counselors c ON u.id = c.user_id WHERE c.id = %s", (counselor_id,))
+        counselor = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if not counselor:
+            flash("Counselor not found.", "danger")
+            return redirect(url_for("admin_manage_counselors"))
+
+        counselor_name = counselor[0]
+
+        if request.method == "POST":
+            new_password = request.form.get("new_password", "")
+            confirm_password = request.form.get("confirm_password", "")
+
+            errors = []
+            if not new_password or not confirm_password:
+                errors.append("Both password fields are required.")
+            if new_password != confirm_password:
+                errors.append("Passwords do not match.")
+            if len(new_password) < 6:
+                errors.append("Password must be at least 6 characters.")
+
+            if errors:
+                for error in errors:
+                    flash(error, "danger")
+                return render_template("admin_reset_counselor_password.html", counselor_id=counselor_id, counselor_name=counselor_name)
+
+            connection = get_connection()
+            cursor = connection.cursor()
+            cursor.execute("UPDATE users SET password_hash = %s WHERE id = (SELECT user_id FROM counselors WHERE id = %s)", (new_password, counselor_id))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            flash("Counselor password reset successfully.", "success")
+            return redirect(url_for("admin_manage_counselors"))
+
+        return render_template("admin_reset_counselor_password.html", counselor_id=counselor_id, counselor_name=counselor_name)
+
+    @app.route("/admin/counselor/<int:counselor_id>/delete", methods=["POST"])
+    @role_required('admin')
+    def admin_delete_counselor(counselor_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT user_id FROM counselors WHERE id = %s", (counselor_id,))
+        counselor_row = cursor.fetchone()
+        if not counselor_row:
+            flash("Counselor not found.", "danger")
+            return redirect(url_for("admin_manage_counselors"))
+
+        old_user_id = counselor_row[0]
+
+        cursor.execute("SELECT COUNT(*) FROM students WHERE assigned_counselor_id = %s", (counselor_id,))
+        assigned_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM appointments WHERE counselor_id = %s AND status IN ('pending', 'scheduled')", (counselor_id,))
+        active_appointment_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM counselor_notes WHERE counselor_id = %s", (counselor_id,))
+        notes_count = cursor.fetchone()[0]
+
+        if assigned_count == 0 and active_appointment_count == 0 and notes_count == 0:
+            try:
+                cursor.execute("UPDATE users SET is_active = FALSE WHERE id = %s", (old_user_id,))
+                cursor.execute("DELETE FROM counselors WHERE id = %s", (counselor_id,))
+                cursor.execute("DELETE FROM users WHERE id = %s", (old_user_id,))
+                connection.commit()
+                flash("Counselor deleted successfully.", "success")
+            except Exception as e:
+                connection.rollback()
+                flash("An error occurred while deleting the counselor. Please try again.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+
+            return redirect(url_for("admin_manage_counselors"))
+
+        replacement = None
+        if assigned_count > 0:
+            cursor.execute("""
+                SELECT c.id, u.name,
+                    (COALESCE(s.student_count, 0) + COALESCE(ca.assignment_count, 0)) as total_assigned
+                FROM counselors c
+                JOIN users u ON c.user_id = u.id
+                LEFT JOIN (
+                    SELECT assigned_counselor_id as counselor_id, COUNT(*) as student_count
+                    FROM students
+                    WHERE assigned_counselor_id IS NOT NULL
+                    GROUP BY assigned_counselor_id
+                ) s ON c.id = s.counselor_id
+                LEFT JOIN (
+                    SELECT counselor_id, COUNT(*) as assignment_count
+                    FROM counselor_assignments
+                    WHERE status = 'active'
+                    GROUP BY counselor_id
+                ) ca ON c.id = ca.counselor_id
+                WHERE c.id != %s AND u.is_active = TRUE
+                ORDER BY total_assigned ASC, c.id ASC
+                LIMIT 1
+            """, (counselor_id,))
+            replacement = cursor.fetchone()
+
+        if not replacement:
+            cursor.close()
+            connection.close()
+            flash("There is no other active counselor available to receive the assigned students.", "danger")
+            return redirect(url_for("admin_manage_counselors"))
+
+        replacement_counselor_id = replacement[0]
+        replacement_counselor_name = replacement[1]
+
+        try:
+            cursor.execute("UPDATE users SET is_active = FALSE WHERE id = %s", (old_user_id,))
+
+            if assigned_count > 0:
+                cursor.execute("""
+                    UPDATE counselor_assignments
+                    SET status = 'transferred', updated_at = CURRENT_TIMESTAMP
+                    WHERE student_id IN (
+                        SELECT id FROM students WHERE assigned_counselor_id = %s
+                    ) AND counselor_id = %s AND status = 'active'
+                """, (counselor_id, counselor_id))
+
+                cursor.execute("""
+                    UPDATE counselor_assignments
+                    SET counselor_id = %s, reason_for_assignment = CONCAT('Auto-transferred from counselor ', %s, ' after deletion')
+                    WHERE student_id IN (
+                        SELECT id FROM students WHERE assigned_counselor_id = %s
+                    ) AND counselor_id = %s AND status = 'transferred'
+                """, (replacement_counselor_id, counselor_id, replacement_counselor_id, counselor_id))
+
+                cursor.execute("""
+                    UPDATE students
+                    SET assigned_counselor_id = %s
+                    WHERE assigned_counselor_id = %s
+                """, (replacement_counselor_id, counselor_id))
+
+                cursor.execute("""
+                    INSERT INTO counselor_assignments (student_id, counselor_id, assignment_date, reason_for_assignment, status)
+                    SELECT s.id, %s, CURDATE(), 'Auto-transferred after counselor deletion', 'active'
+                    FROM students s
+                    WHERE s.assigned_counselor_id = %s
+                    AND s.id NOT IN (
+                        SELECT student_id FROM counselor_assignments WHERE counselor_id = %s AND status = 'active'
+                    )
+                """, (replacement_counselor_id, replacement_counselor_id, replacement_counselor_id))
+
+            if active_appointment_count > 0:
+                cursor.execute("""
+                    UPDATE appointments
+                    SET counselor_id = %s
+                    WHERE counselor_id = %s AND status IN ('pending', 'scheduled')
+                """, (replacement_counselor_id, counselor_id))
+
+            if notes_count > 0:
+                cursor.execute("""
+                    UPDATE counselor_notes
+                    SET counselor_id = %s
+                    WHERE counselor_id = %s
+                """, (replacement_counselor_id, counselor_id))
+
+            cursor.execute("DELETE FROM counselor_assignments WHERE counselor_id = %s AND status = 'transferred'", (counselor_id,))
+            cursor.execute("DELETE FROM counselors WHERE id = %s", (counselor_id,))
+            cursor.execute("UPDATE counselors SET current_client_count = current_client_count + %s WHERE id = %s", (assigned_count, replacement_counselor_id))
+            cursor.execute("DELETE FROM users WHERE id = %s", (old_user_id,))
+            connection.commit()
+            flash(f"Counselor deleted successfully. {assigned_count} student(s) automatically transferred to {replacement_counselor_name}.", "success")
+        except Exception as e:
+            connection.rollback()
+            flash("An error occurred while deleting the counselor. Please try again.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("admin_manage_counselors"))
+
+    @app.route("/admin/counselor/<int:counselor_id>")
+    @role_required('admin')
+    def admin_view_counselor(counselor_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT c.id, u.name, u.email, c.staff_id, c.phone, c.office, c.specialization, u.is_active
+            FROM counselors c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.id = %s
+        """, (counselor_id,))
+        counselor = cursor.fetchone()
+
+        if not counselor:
+            cursor.close()
+            connection.close()
+            flash("Counselor not found.", "danger")
+            return redirect(url_for("admin_manage_counselors"))
+
+        cursor.execute("""
+            SELECT COUNT(*) FROM students WHERE assigned_counselor_id = %s
+        """, (counselor_id,))
+        assigned_students = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT status, COUNT(*) FROM appointments
+            WHERE counselor_id = %s
+            GROUP BY status
+        """, (counselor_id,))
+        appointment_stats = {row[0]: row[1] for row in cursor.fetchall()}
+
+        cursor.execute("""
+            SELECT u.name, s.student_id_number, ss.risk_level, ss.last_assessment_date
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN survey_summary ss ON s.id = ss.student_id
+            WHERE s.assigned_counselor_id = %s
+            ORDER BY ss.last_assessment_date DESC
+            LIMIT 5
+        """, (counselor_id,))
+        recent_students = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT a.appointment_date, a.appointment_type, a.status, u.name as student_name
+            FROM appointments a
+            JOIN students s ON a.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            WHERE a.counselor_id = %s
+            ORDER BY a.appointment_date DESC
+            LIMIT 5
+        """, (counselor_id,))
+        recent_appointments = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        counselor_data = {
+            "id": counselor[0],
+            "name": counselor[1],
+            "email": counselor[2],
+            "staff_id": counselor[3],
+            "phone": counselor[4],
+            "office": counselor[5],
+            "specialization": counselor[6],
+            "is_active": counselor[7],
+            "assigned_students": assigned_students,
+            "appointment_stats": appointment_stats,
+            "recent_students": recent_students,
+            "recent_appointments": recent_appointments
+        }
+
+        return render_template("admin_view_counselor.html", counselor=counselor_data)
+
+    @app.route("/admin/counselor/<int:counselor_id>/edit", methods=["GET", "POST"])
+    @role_required('admin')
+    def admin_edit_counselor(counselor_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT c.id, u.name, u.email, c.phone, c.office, c.specialization
+            FROM counselors c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.id = %s
+        """, (counselor_id,))
+        counselor = cursor.fetchone()
+
+        if not counselor:
+            cursor.close()
+            connection.close()
+            flash("Counselor not found.", "danger")
+            return redirect(url_for("admin_manage_counselors"))
+
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email", "").strip()
+            phone = request.form.get("phone", "").strip()
+            office = request.form.get("office", "").strip()
+            specialization = request.form.get("specialization", "").strip()
+
+            errors = []
+            if not name or not email:
+                errors.append("Name and email are required.")
+
+            cursor.execute("SELECT id FROM users WHERE email = %s AND id != (SELECT user_id FROM counselors WHERE id = %s)", (email, counselor_id))
+            if cursor.fetchone():
+                errors.append("Email already registered to another user.")
+
+            cursor.close()
+            connection.close()
+
+            if errors:
+                for error in errors:
+                    flash(error, "danger")
+                return render_template("admin_edit_counselor.html", counselor={
+                    "id": counselor[0],
+                    "name": name,
+                    "email": email,
+                    "phone": phone,
+                    "office": office,
+                    "specialization": specialization
+                })
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute("UPDATE users SET name = %s, email = %s WHERE id = (SELECT user_id FROM counselors WHERE id = %s)", (name, email, counselor_id))
+                cursor.execute("UPDATE counselors SET phone = %s, office = %s, specialization = %s WHERE id = %s", (phone, office, specialization, counselor_id))
+                connection.commit()
+                flash("Counselor updated successfully!", "success")
+                return redirect(url_for("admin_manage_counselors"))
+            except Exception as e:
+                connection.rollback()
+                flash("An error occurred while updating the counselor. Please try again.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+
+            return render_template("admin_edit_counselor.html", counselor={
+                "id": counselor[0],
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "office": office,
+                "specialization": specialization
+            })
+
+        cursor.close()
+        connection.close()
+
+        counselor_data = {
+            "id": counselor[0],
+            "name": counselor[1],
+            "email": counselor[2],
+            "phone": counselor[3] or "",
+            "office": counselor[4] or "",
+            "specialization": counselor[5] or ""
+        }
+
+        return render_template("admin_edit_counselor.html", counselor=counselor_data)
+
+    @app.route("/admin/anonymous-messages")
+    @role_required('admin')
+    def admin_anonymous_messages():
+        search = request.args.get('search', '').strip()
+        status_filter = request.args.get('status', 'all').lower()
+        urgent_filter = request.args.get('urgent', 'all').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        query = """
+            SELECT id, category, message, is_urgent, status, created_at
+            FROM anonymous_messages
+        """
+        params = []
+        conditions = []
+
+        if search:
+            conditions.append("(category LIKE %s OR message LIKE %s)")
+            params.extend([f"%{search}%", f"%{search}%"])
+
+        if status_filter != 'all':
+            conditions.append("status = %s")
+            params.append(status_filter.capitalize())
+
+        if urgent_filter != 'all':
+            conditions.append("is_urgent = %s")
+            params.append(urgent_filter == 'urgent')
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        query += " ORDER BY created_at DESC"
+
+        cursor.execute(query, params)
+        messages = cursor.fetchall()
+
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages")
+        total = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
+        new_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
+        urgent_count = cursor.fetchone()[0]
+
+        cursor.close()
+        connection.close()
+
+        return render_template("admin_anonymous_messages.html", messages=messages, total=total, new_count=new_count, urgent_count=urgent_count, filters={
+            'search': search,
+            'status': status_filter,
+            'urgent': urgent_filter
+        })
+
+    @app.route("/admin/anonymous-message/<int:message_id>")
+    @role_required('admin')
+    def admin_view_anonymous_message(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id, category, message, is_urgent, status, created_at FROM anonymous_messages WHERE id = %s", (message_id,))
+        message = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if not message:
+            flash("Message not found.", "danger")
+            return redirect(url_for("admin_anonymous_messages"))
+
+        return render_template("admin_view_anonymous_message.html", message=message)
+
+    @app.route("/admin/anonymous-message/<int:message_id>/mark-read", methods=["POST"])
+    @role_required('admin')
+    def admin_mark_anonymous_read(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE anonymous_messages SET status = 'Read', read_at = NOW() WHERE id = %s", (message_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Message marked as read.", "success")
+        return redirect(url_for("admin_anonymous_messages"))
+
+    @app.route("/admin/anonymous-message/<int:message_id>/archive", methods=["POST"])
+    @role_required('admin')
+    def admin_archive_anonymous(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE anonymous_messages SET status = 'Archived' WHERE id = %s", (message_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Message archived.", "success")
+        return redirect(url_for("admin_anonymous_messages"))
+
+    @app.route("/admin/anonymous-message/<int:message_id>/delete", methods=["POST"])
+    @role_required('admin')
+    def admin_delete_anonymous(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM anonymous_messages WHERE id = %s", (message_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Message deleted successfully.", "success")
+        return redirect(url_for("admin_anonymous_messages"))
+
+    @app.route("/counselor/anonymous-messages")
+    @role_required('counselor')
+    def counselor_anonymous_messages():
+        search = request.args.get('search', '').strip()
+        status_filter = request.args.get('status', 'all').lower()
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        query = """
+            SELECT id, category, message, is_urgent, status, created_at
+            FROM anonymous_messages
+        """
+        params = []
+        conditions = []
+
+        if search:
+            conditions.append("(category LIKE %s OR message LIKE %s)")
+            params.extend([f"%{search}%", f"%{search}%"])
+
+        if status_filter != 'all':
+            conditions.append("status = %s")
+            params.append(status_filter.capitalize())
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        query += " ORDER BY created_at DESC"
+
+        cursor.execute(query, params)
+        messages = cursor.fetchall()
+
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
+        new_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
+        urgent_count = cursor.fetchone()[0]
+
+        cursor.close()
+        connection.close()
+
+        return render_template("counselor_anonymous_messages.html", messages=messages, new_count=new_count, urgent_count=urgent_count, filters={
+            'search': search,
+            'status': status_filter
+        })
+
+    @app.route("/counselor/anonymous-message/<int:message_id>")
+    @role_required('counselor')
+    def counselor_view_anonymous_message(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id, category, message, is_urgent, status, created_at FROM anonymous_messages WHERE id = %s", (message_id,))
+        message = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if not message:
+            flash("Message not found.", "danger")
+            return redirect(url_for("counselor_anonymous_messages"))
+
+        return render_template("counselor_view_anonymous_message.html", message=message)
+
+    @app.route("/counselor/anonymous-message/<int:message_id>/mark-read", methods=["POST"])
+    @role_required('counselor')
+    def counselor_mark_anonymous_read(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE anonymous_messages SET status = 'Read', read_at = NOW() WHERE id = %s", (message_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Message marked as read.", "success")
+        return redirect(url_for("counselor_anonymous_messages"))
+
+    @app.route("/counselor/anonymous-message/<int:message_id>/archive", methods=["POST"])
+    @role_required('counselor')
+    def counselor_archive_anonymous(message_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("UPDATE anonymous_messages SET status = 'Archived' WHERE id = %s", (message_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        flash("Message archived.", "success")
+        return redirect(url_for("counselor_anonymous_messages"))

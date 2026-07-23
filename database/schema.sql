@@ -68,6 +68,9 @@ CREATE TABLE students (
 CREATE TABLE counselors (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL UNIQUE,
+    staff_id VARCHAR(100) UNIQUE,
+    phone VARCHAR(20),
+    office VARCHAR(255),
     license_number VARCHAR(100) UNIQUE,
     specialization VARCHAR(255),
     bio TEXT,
@@ -80,7 +83,8 @@ CREATE TABLE counselors (
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_is_available (is_available),
-    INDEX idx_specialization (specialization)
+    INDEX idx_specialization (specialization),
+    INDEX idx_staff_id (staff_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -462,6 +466,25 @@ BEGIN
     
 END //
 DELIMITER ;
+
+-- ============================================================================
+-- ANONYMOUS MESSAGES TABLE - Anonymous support messages from visitors
+-- ============================================================================
+CREATE TABLE anonymous_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    category VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    is_urgent BOOLEAN DEFAULT FALSE,
+    status ENUM('New', 'Read', 'Archived') NOT NULL DEFAULT 'New',
+    read_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_status (status),
+    INDEX idx_is_urgent (is_urgent),
+    INDEX idx_created_at (created_at),
+    INDEX idx_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
 -- SEED DATA - Initialize system with sample categories

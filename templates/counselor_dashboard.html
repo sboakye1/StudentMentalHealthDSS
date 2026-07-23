@@ -349,6 +349,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('counselor_anonymous_messages') }}">
+            <span class="nav-icon">&#x1F4E7;</span>
+            Anonymous Messages
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('logout') }}">
             <span class="nav-icon">&#x1F511;</span>
             Logout
@@ -408,6 +414,20 @@
               <div class="label">Upcoming</div>
               <div class="value default">{{ data.upcoming_appointments|length }}</div>
               <div class="subtext">Appointments</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card high">
+              <div class="label">New Anonymous</div>
+              <div class="value high">{{ data.new_anonymous_messages }}</div>
+              <div class="subtext">Messages</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-2">
+            <div class="summary-card high">
+              <div class="label">Urgent Anonymous</div>
+              <div class="value high">{{ data.urgent_anonymous_messages }}</div>
+              <div class="subtext">Priority</div>
             </div>
           </div>
         </div>
