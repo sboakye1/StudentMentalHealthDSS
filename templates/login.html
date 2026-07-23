@@ -17,7 +17,7 @@
       * { box-sizing: border-box; }
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: var(--bg-primary);
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Home page.JPG') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         margin: 0;
         min-height: 100vh;
@@ -50,6 +50,8 @@
         justify-content: center;
         padding: 2rem 1rem;
       }
+      .login-logo { height: 64px; width: auto; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; }
+      .login-card { background: rgba(255, 255, 255, 0.95); }
       .login-card {
         background: #fff;
         border: 1px solid #e2e8f0;
@@ -125,6 +127,7 @@
 
     <div class="login-wrapper">
       <div class="login-card">
+        <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="login-logo">
         <h1>Welcome back</h1>
         <p class="subtitle">Log in to access your mental wellness portal.</p>
         {% with messages = get_flashed_messages(with_categories=true) %}

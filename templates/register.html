@@ -17,7 +17,7 @@
       * { box-sizing: border-box; }
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: var(--bg-primary);
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 4.JPG') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         margin: 0;
         min-height: 100vh;
@@ -51,6 +51,8 @@
         justify-content: center;
         padding: 2rem 1rem;
       }
+      .register-logo { height: 64px; width: auto; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; }
+      .register-card { background: rgba(255, 255, 255, 0.95); }
       .register-card {
         background: #fff;
         border: 1px solid #e2e8f0;
@@ -126,6 +128,7 @@
 
     <div class="register-wrapper">
       <div class="register-card">
+        <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="register-logo">
         <h1>Create Account</h1>
         <p class="subtitle">Join the student mental wellness portal.</p>
         {% with messages = get_flashed_messages(with_categories=true) %}

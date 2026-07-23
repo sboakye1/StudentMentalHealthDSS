@@ -25,7 +25,7 @@
 
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: var(--bg-primary);
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 3.JPG') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         min-height: 100vh;
         margin: 0;
@@ -253,12 +253,14 @@
         border-radius: 20px;
         margin-left: 0.5rem;
       }
+      .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
+      .card { background: rgba(255, 255, 255, 0.95); }
     </style>
   </head>
   <body>
     <nav class="sidebar">
       <a class="sidebar-brand" href="{{ url_for('admin_dashboard') }}">
-        &#x1F3E5; Admin Portal
+        <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="sidebar-logo">&#x1F3E5; Admin Portal
       </a>
       <ul class="sidebar-nav">
         <li class="nav-item">

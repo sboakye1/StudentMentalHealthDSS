@@ -18,10 +18,12 @@
       * { box-sizing: border-box; }
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: var(--bg-primary);
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Home page.JPG') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         margin: 0;
       }
+      .navbar-logo { height: 36px; width: auto; margin-right: 0.5rem; }
+      .card, .feature-card, .detail-card { background: rgba(255, 255, 255, 0.95); }
       .navbar {
         background: rgba(255,255,255,0.85);
         backdrop-filter: blur(20px);
@@ -115,6 +117,7 @@
     <nav class="navbar">
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('home') }}">
+          <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="navbar-logo">
           <span style="margin-right:0.5rem;">&#x1F3E5;</span> Mental Health DSS
         </a>
         <div class="navbar-nav ms-auto gap-3">
