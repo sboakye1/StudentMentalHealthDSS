@@ -487,6 +487,26 @@ CREATE TABLE anonymous_messages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
+-- NOTIFICATIONS TABLE - User notifications for system events
+-- ============================================================================
+CREATE TABLE notifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    recipient_user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('appointment', 'counselor', 'survey', 'announcement', 'system', 'urgent') NOT NULL DEFAULT 'system',
+    reference_id INT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (recipient_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_recipient_user_id (recipient_user_id),
+    INDEX idx_is_read (is_read),
+    INDEX idx_created_at (created_at),
+    INDEX idx_type (type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
 -- SEED DATA - Initialize system with sample categories
 -- ============================================================================
 
