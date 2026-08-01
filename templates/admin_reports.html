@@ -306,55 +306,7 @@
     </style>
   </head>
   <body>
-    <nav class="sidebar">
-      <a class="sidebar-brand" href="{{ url_for('admin_dashboard') }}">
-        <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="sidebar-logo">&#x1F3E5; Admin Portal
-      </a>
-      <ul class="sidebar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
-            <span class="nav-icon">&#x1F3E5;</span>
-            Dashboard
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('admin_reports') }}">
-            <span class="nav-icon">&#x1F4CA;</span>
-            Reports
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_critical_cases') }}">
-            <span class="nav-icon">&#x1F6A8;</span>
-            Critical Cases
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_counselor_workload') }}">
-            <span class="nav-icon">&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
-            Counselor Workload
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_manage_counselors') }}">
-            <span class="nav-icon">&#x1F465;</span>
-            Manage Counselors
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_add_counselor') }}">
-            <span class="nav-icon">&#x2795;</span>
-            Add Counselor
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">
-            <span class="nav-icon">&#x1F511;</span>
-            Logout
-          </a>
-        </li>
-      </ul>
-    </nav>
+        {% include 'sidebar_admin.html' %}
 
     <main class="main-content">
       <div class="container">

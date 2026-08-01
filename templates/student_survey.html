@@ -264,47 +264,7 @@
     </style>
   </head>
   <body>
-    <nav class="sidebar">
-      <a class="sidebar-brand" href="{{ url_for('student_dashboard') }}"><img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="sidebar-logo">&#x1F3E5; Student Portal</a>
-      <ul class="sidebar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('student_dashboard') }}">
-            <span class="nav-icon">&#x1F3E5;</span>
-            Dashboard
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('student_survey') }}">
-            <span class="nav-icon">&#x1F4CB;</span>
-            Take Survey
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('student_appointment') }}">
-            <span class="nav-icon">&#x1F4C5;</span>
-            Request Appointment
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('student_appointments') }}">
-            <span class="nav-icon">&#x1F4C6;</span>
-            My Appointments
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('student_profile') }}">
-            <span class="nav-icon">&#x1F464;</span>
-            My Profile
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">
-            <span class="nav-icon">&#x1F511;</span>
-            Logout
-          </a>
-        </li>
-      </ul>
-    </nav>
+        {% include 'sidebar_student.html' %}
 
     <main class="main-content">
       <div class="container">
