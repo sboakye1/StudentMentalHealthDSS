@@ -82,16 +82,6 @@ def generate_dss_decision(score):
     }
 
 
-def get_all_admin_user_ids():
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE")
-    rows = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return [row[0] for row in rows]
-
-
 def get_user_role(user_id):
     connection = get_connection()
     cursor = connection.cursor()
@@ -100,142 +90,6 @@ def get_user_role(user_id):
     cursor.close()
     connection.close()
     return result[0] if result else None
-
-
-def create_notification(recipient_user_id, title, message, notification_type="system", reference_id=None):
-    connection = get_connection()
-    cursor = connection.cursor()
-    try:
-        cursor.execute(
-            """INSERT INTO notifications (recipient_user_id, title, message, type, reference_id)
-               VALUES (%s, %s, %s, %s, %s)""",
-            (recipient_user_id, title, message, notification_type, reference_id)
-        )
-        connection.commit()
-        return True
-    except Exception:
-        connection.rollback()
-        return False
-    finally:
-        cursor.close()
-        connection.close()
-
-
-def get_unread_notification_count(user_id):
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT COUNT(*) FROM notifications WHERE recipient_user_id = %s AND is_read = FALSE", (user_id,))
-    count = cursor.fetchone()[0]
-    cursor.close()
-    connection.close()
-    return count
-
-
-def get_latest_notifications(user_id, limit=5):
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute(
-        """SELECT id, title, message, type, is_read, created_at
-           FROM notifications
-           WHERE recipient_user_id = %s
-           ORDER BY created_at DESC
-           LIMIT %s""",
-        (user_id, limit)
-    )
-    rows = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    notifications = []
-    for row in rows:
-        notifications.append({
-            "id": row[0],
-            "title": row[1],
-            "message": row[2],
-            "type": row[3],
-            "is_read": bool(row[4]),
-            "created_at": row[5],
-        })
-    return notifications
-
-
-def get_all_notifications(user_id):
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute(
-        """SELECT id, title, message, type, is_read, created_at
-           FROM notifications
-           WHERE recipient_user_id = %s
-           ORDER BY created_at DESC""",
-        (user_id,)
-    )
-    rows = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    notifications = []
-    for row in rows:
-        notifications.append({
-            "id": row[0],
-            "title": row[1],
-            "message": row[2],
-            "type": row[3],
-            "is_read": bool(row[4]),
-            "created_at": row[5],
-        })
-    return notifications
-
-
-def mark_notification_read(notification_id, user_id):
-    connection = get_connection()
-    cursor = connection.cursor()
-    try:
-        cursor.execute(
-            "UPDATE notifications SET is_read = TRUE WHERE id = %s AND recipient_user_id = %s",
-            (notification_id, user_id)
-        )
-        connection.commit()
-        return cursor.rowcount > 0
-    except Exception:
-        connection.rollback()
-        return False
-    finally:
-        cursor.close()
-        connection.close()
-
-
-def mark_all_notifications_read(user_id):
-    connection = get_connection()
-    cursor = connection.cursor()
-    try:
-        cursor.execute(
-            "UPDATE notifications SET is_read = TRUE WHERE recipient_user_id = %s AND is_read = FALSE",
-            (user_id,)
-        )
-        connection.commit()
-        return cursor.rowcount > 0
-    except Exception:
-        connection.rollback()
-        return False
-    finally:
-        cursor.close()
-        connection.close()
-
-
-def delete_notification(notification_id, user_id):
-    connection = get_connection()
-    cursor = connection.cursor()
-    try:
-        cursor.execute(
-            "DELETE FROM notifications WHERE id = %s AND recipient_user_id = %s",
-            (notification_id, user_id)
-        )
-        connection.commit()
-        return cursor.rowcount > 0
-    except Exception:
-        connection.rollback()
-        return False
-    finally:
-        cursor.close()
-        connection.close()
 
 
 def _get_or_create_dev_student():
@@ -432,24 +286,8 @@ def register_routes(app):
                     cursor2.execute("SELECT name FROM users WHERE id = %s", (user_id,))
                     student_name_row = cursor2.fetchone()
                     student_name_display = student_name_row[0] if student_name_row else name
-                    create_notification(
-                        assigned_counselor_user_id,
-                        "New Student Assigned",
-                        f"Student '{student_name_display}' has been assigned to you.",
-                        notification_type="counselor",
-                        reference_id=student_id
-                    )
                 cursor2.close()
                 connection2.close()
-
-            for admin_id in get_all_admin_user_ids():
-                create_notification(
-                    admin_id,
-                    "New Student Registered",
-                    f"Student '{name}' ({email}) has registered and is awaiting counselor assignment.",
-                    notification_type="announcement",
-                    reference_id=user_id
-                )
 
             flash("Registration successful! Please log in.", "success")
             return redirect(url_for("login"))
@@ -482,14 +320,6 @@ def register_routes(app):
                     (category, message.strip(), is_urgent)
                 )
                 connection.commit()
-                for admin_id in get_all_admin_user_ids():
-                    create_notification(
-                        admin_id,
-                        "New Anonymous Message",
-                        f"A new anonymous message has been received in category: {category}.",
-                        notification_type="urgent" if is_urgent else "announcement",
-                        reference_id=cursor.lastrowid
-                    )
                 flash("Your anonymous message has been received. Thank you for reaching out.", "success")
                 return redirect(url_for("home"))
             except Exception as e:
@@ -592,24 +422,6 @@ def register_routes(app):
             "upcoming_appointment": upcoming_appointment,
             "assigned_counselor": assigned_counselor_name
         }
-        if result and result[3]:
-            last_assessment = result[3]
-            days_since = (datetime.now() - last_assessment).days
-            if days_since >= 30:
-                connection2 = get_connection()
-                cursor2 = connection2.cursor()
-                cursor2.execute("SELECT COUNT(*) FROM notifications WHERE recipient_user_id = %s AND type = 'survey' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)", (session.get("user_id"),))
-                recent_survey_notif = cursor2.fetchone()[0]
-                cursor2.close()
-                connection2.close()
-                if recent_survey_notif == 0:
-                    create_notification(
-                        session.get("user_id"),
-                        "Monthly Survey Available",
-                        "Your monthly wellness survey is now available. Please take a few minutes to complete it.",
-                        notification_type="survey",
-                        reference_id=student_id
-                    )
         return render_template("student_dashboard.html", data=dashboard_data)
 
     @app.route("/student/appointments")
@@ -679,46 +491,6 @@ def register_routes(app):
                 )
             )
             connection.commit()
-            if decision["risk_level"] == "High":
-                connection2 = get_connection()
-                cursor2 = connection2.cursor()
-                cursor2.execute("SELECT user_id, assigned_counselor_id FROM students WHERE id = %s", (student_id,))
-                student_info = cursor2.fetchone()
-                if student_info:
-                    student_user_id = student_info[0]
-                    assigned_counselor_id = student_info[1]
-                    cursor2.execute("SELECT name FROM users WHERE id = %s", (student_user_id,))
-                    student_name_row = cursor2.fetchone()
-                    student_name = student_name_row[0] if student_name_row else "Student"
-                    if assigned_counselor_id:
-                        cursor2.execute("SELECT user_id FROM counselors WHERE id = %s", (assigned_counselor_id,))
-                        counselor_user_row = cursor2.fetchone()
-                        counselor_user_id = counselor_user_row[0] if counselor_user_row else None
-                        if counselor_user_id:
-                            create_notification(
-                                counselor_user_id,
-                                "High-Risk Student Detected",
-                                f"Student '{student_name}' has been flagged as High risk in their latest survey assessment.",
-                                notification_type="urgent",
-                                reference_id=student_id
-                            )
-                    for admin_id in get_all_admin_user_ids():
-                        create_notification(
-                            admin_id,
-                            "High-Risk Student Detected",
-                            f"Student '{student_name}' has been flagged as High risk in their latest survey assessment.",
-                            notification_type="urgent",
-                            reference_id=student_id
-                        )
-                    create_notification(
-                        student_user_id,
-                        "High Risk Detected",
-                        "Your recent survey indicates a high risk level. Please consider contacting your counselor for support.",
-                        notification_type="urgent",
-                        reference_id=student_id
-                    )
-                cursor2.close()
-                connection2.close()
             cursor.close()
             connection.close()
             return redirect(url_for("student_dashboard"))
@@ -761,26 +533,6 @@ def register_routes(app):
             connection.commit()
             cursor.close()
             connection.close()
-
-            if assigned_counselor_id:
-                connection2 = get_connection()
-                cursor2 = connection2.cursor()
-                cursor2.execute("SELECT user_id FROM counselors WHERE id = %s", (assigned_counselor_id,))
-                counselor_user_row = cursor2.fetchone()
-                counselor_user_id = counselor_user_row[0] if counselor_user_row else None
-                if counselor_user_id:
-                    cursor2.execute("SELECT name FROM users WHERE id = %s", (student_id,))
-                    student_name_row = cursor2.fetchone()
-                    student_name = student_name_row[0] if student_name_row else "Student"
-                    create_notification(
-                        counselor_user_id,
-                        "New Appointment Request",
-                        f"Student '{student_name}' has requested a new appointment.",
-                        notification_type="appointment",
-                        reference_id=appointment_id
-                    )
-                cursor2.close()
-                connection2.close()
 
             return redirect(url_for("student_dashboard"))
         return render_template("student_appointment.html")
@@ -1296,18 +1048,6 @@ def register_routes(app):
             WHERE id = %s AND (counselor_id IS NULL OR status = 'pending')
         """, (counselor_id, appointment_id))
         connection.commit()
-        if student_id:
-            cursor.execute("SELECT user_id FROM students WHERE id = %s", (student_id,))
-            student_user_row = cursor.fetchone()
-            student_user_id = student_user_row[0] if student_user_row else None
-            if student_user_id:
-                create_notification(
-                    student_user_id,
-                    "Appointment Approved",
-                    f"Your appointment request has been approved and scheduled.",
-                    notification_type="appointment",
-                    reference_id=appointment_id
-                )
         cursor.close()
         connection.close()
         return redirect(url_for("counselor_dashboard"))
@@ -1331,18 +1071,6 @@ def register_routes(app):
             WHERE id = %s AND (counselor_id IS NULL OR status = 'pending')
         """, (rejection_reason, counselor_id, appointment_id))
         connection.commit()
-        if student_id:
-            cursor.execute("SELECT user_id FROM students WHERE id = %s", (student_id,))
-            student_user_row = cursor.fetchone()
-            student_user_id = student_user_row[0] if student_user_row else None
-            if student_user_id:
-                create_notification(
-                    student_user_id,
-                    "Appointment Cancelled",
-                    f"Your appointment request has been cancelled. Reason: {rejection_reason or 'No reason provided.'}",
-                    notification_type="appointment",
-                    reference_id=appointment_id
-                )
         cursor.close()
         connection.close()
         return redirect(url_for("counselor_dashboard"))
@@ -1370,56 +1098,6 @@ def register_routes(app):
             "application": "running",
             "database": result
         })
-
-    @app.route("/notifications")
-    @login_required
-    def notifications_page():
-        user_id = session.get("user_id")
-        notifications = get_all_notifications(user_id)
-        unread_count = get_unread_notification_count(user_id)
-        return render_template("notifications.html", notifications=notifications, unread_count=unread_count)
-
-    @app.route("/api/notifications/unread-count")
-    @login_required
-    def api_notifications_unread_count():
-        user_id = session.get("user_id")
-        count = get_unread_notification_count(user_id)
-        return jsonify({"unread_count": count})
-
-    @app.route("/api/notifications/recent")
-    @login_required
-    def api_notifications_recent():
-        user_id = session.get("user_id")
-        notifications = get_latest_notifications(user_id, limit=5)
-        unread_count = get_unread_notification_count(user_id)
-        return jsonify({
-            "notifications": notifications,
-            "unread_count": unread_count
-        })
-
-    @app.route("/notifications/<int:notification_id>/read", methods=["POST"])
-    @login_required
-    def notification_mark_read(notification_id):
-        user_id = session.get("user_id")
-        mark_notification_read(notification_id, user_id)
-        flash("Notification marked as read.", "success")
-        return redirect(url_for("notifications_page"))
-
-    @app.route("/notifications/read-all", methods=["POST"])
-    @login_required
-    def notification_mark_all_read():
-        user_id = session.get("user_id")
-        mark_all_notifications_read(user_id)
-        flash("All notifications marked as read.", "success")
-        return redirect(url_for("notifications_page"))
-
-    @app.route("/notifications/<int:notification_id>/delete", methods=["POST"])
-    @login_required
-    def notification_delete(notification_id):
-        user_id = session.get("user_id")
-        delete_notification(notification_id, user_id)
-        flash("Notification deleted.", "success")
-        return redirect(url_for("notifications_page"))
 
     @app.route("/admin/dashboard")
     @role_required('admin')
@@ -2088,14 +1766,6 @@ def register_routes(app):
                 """, (new_counselor_id, student_id))
 
                 connection.commit()
-                if student_user_id:
-                    create_notification(
-                        student_user_id,
-                        "Counselor Changed",
-                        f"Your counselor has been changed. Please check your dashboard for details.",
-                        notification_type="counselor",
-                        reference_id=student_id
-                    )
                 cursor.execute("SELECT user_id FROM counselors WHERE id = %s", (new_counselor_id,))
                 new_counselor_user_row = cursor.fetchone()
                 new_counselor_user_id = new_counselor_user_row[0] if new_counselor_user_row else None
@@ -2103,13 +1773,6 @@ def register_routes(app):
                     cursor.execute("SELECT name FROM users WHERE id = %s", (student[1],))
                     student_name_row = cursor.fetchone()
                     student_name = student_name_row[0] if student_name_row else "Student"
-                    create_notification(
-                        new_counselor_user_id,
-                        "New Student Assigned",
-                        f"Student '{student_name}' has been transferred to you.",
-                        notification_type="counselor",
-                        reference_id=student_id
-                    )
                 flash("Counselor transferred successfully!", "success")
                 return redirect(url_for("admin_reports"))
             except Exception as e:
@@ -2179,14 +1842,6 @@ def register_routes(app):
                 )
                 connection.commit()
                 new_counselor_id = cursor.lastrowid
-                for admin_id in get_all_admin_user_ids():
-                    create_notification(
-                        admin_id,
-                        "New Counselor Added",
-                        f"Counselor '{name}' has been added to the system.",
-                        notification_type="announcement",
-                        reference_id=new_counselor_id
-                    )
                 flash("Counselor added successfully!", "success")
                 return redirect(url_for("admin_manage_counselors"))
             except Exception as e:
@@ -2410,14 +2065,6 @@ def register_routes(app):
                 cursor.execute("DELETE FROM counselors WHERE id = %s", (counselor_id,))
                 cursor.execute("DELETE FROM users WHERE id = %s", (old_user_id,))
                 connection.commit()
-                for admin_id in get_all_admin_user_ids():
-                    create_notification(
-                        admin_id,
-                        "Counselor Deleted",
-                        f"Counselor (ID: {counselor_id}) has been deleted from the system.",
-                        notification_type="announcement",
-                        reference_id=counselor_id
-                    )
                 flash("Counselor deleted successfully.", "success")
             except Exception as e:
                 connection.rollback()
@@ -2517,14 +2164,6 @@ def register_routes(app):
             cursor.execute("UPDATE counselors SET current_client_count = current_client_count + %s WHERE id = %s", (assigned_count, replacement_counselor_id))
             cursor.execute("DELETE FROM users WHERE id = %s", (old_user_id,))
             connection.commit()
-            for admin_id in get_all_admin_user_ids():
-                create_notification(
-                    admin_id,
-                    "Counselor Deleted",
-                    f"Counselor (ID: {counselor_id}) has been deleted from the system. {assigned_count} student(s) transferred to counselor {replacement_counselor_name}.",
-                    notification_type="announcement",
-                    reference_id=counselor_id
-                )
             flash(f"Counselor deleted successfully. {assigned_count} student(s) automatically transferred to {replacement_counselor_name}.", "success")
         except Exception as e:
             connection.rollback()
