@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Counselor Dashboard - Student Mental Health DSS</title>
+    <title>Counselor Dashboard - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -23,19 +23,19 @@
 
       * { box-sizing: border-box; }
 
-       body {
-         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-         background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 2.JPG') }}") center/cover no-repeat fixed;
-         color: var(--text-primary);
-         min-height: 100vh;
-         margin: 0;
-       }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 16.webp') }}") center/cover no-repeat fixed;
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+      }
 
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -101,7 +101,7 @@
       }
 
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -119,60 +119,56 @@
         }
       }
 
-      .header-section {
-        background: linear-gradient(135deg, #f0fdfa, #e0f2fe);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid var(--border-color);
+      .page-header {
+        padding: 2rem 0 1rem;
       }
 
-      .header-section h1 {
+      .page-header h1 {
         font-weight: 700;
         font-size: 1.75rem;
         margin-bottom: 0.25rem;
-        color: var(--text-primary);
+        color: #ffffff;
       }
 
-      .header-section .subtitle {
-        color: var(--text-secondary);
+      .page-header .subtitle {
+        color: #ffffff;
         font-size: 0.95rem;
         margin-bottom: 0;
       }
 
-      .header-section .counselor-name {
-        color: var(--accent-teal);
+      .page-header .counselor-name {
+        color: #5eead4;
         font-weight: 600;
         font-size: 1rem;
+        margin-bottom: 0;
       }
 
       .summary-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         padding: 1.25rem;
         height: 100%;
-        transition: all 0.2s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
 
       .summary-card:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
         transform: translateY(-2px);
       }
-
-      .summary-card.high { border-top: 3px solid var(--accent-rose); }
-      .summary-card.medium { border-top: 3px solid var(--accent-amber); }
-      .summary-card.low { border-top: 3px solid var(--accent-green); }
-      .summary-card.default { border-top: 3px solid var(--accent-blue); }
 
       .summary-card .label {
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: var(--text-muted);
+        color: #94a3b8;
         font-weight: 600;
         margin-bottom: 0.5rem;
       }
@@ -181,33 +177,43 @@
         font-size: 1.75rem;
         font-weight: 700;
         line-height: 1.2;
+        color: #f8fafc;
       }
 
-      .summary-card .value.high { color: var(--accent-rose); }
-      .summary-card .value.medium { color: var(--accent-amber); }
-      .summary-card .value.low { color: var(--accent-green); }
-      .summary-card .value.default { color: var(--text-primary); }
+      .summary-card .value.high { color: #fca5a5; }
+      .summary-card .value.medium { color: #fcd34d; }
+      .summary-card .value.low { color: #6ee7b7; }
+      .summary-card .value.default { color: #f8fafc; }
 
       .summary-card .subtext {
         font-size: 0.85rem;
-        color: var(--text-muted);
+        color: #64748b;
         margin-top: 0.25rem;
       }
 
       .preview-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
         height: 100%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
         display: flex;
         flex-direction: column;
+      }
+
+      .preview-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
       }
 
       .preview-card .card-header {
         padding: 0 0 1rem 0;
         margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -215,19 +221,20 @@
 
       .preview-card .card-header h6 {
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 1rem;
         margin: 0;
-        color: var(--text-primary);
+        color: #f8fafc;
       }
 
       .preview-card .card-header .view-all-link {
         margin-left: auto;
-        font-size: 0.8rem;
-        color: var(--accent-teal);
+        font-size: 0.85rem;
+        color: #5eead4;
         text-decoration: none;
       }
 
       .preview-card .card-header .view-all-link:hover {
+        color: #2dd4bf;
         text-decoration: underline;
       }
 
@@ -241,11 +248,14 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.students { background: rgba(13, 148, 136, 0.1); color: var(--accent-teal); }
-      .header-icon.requests { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
-      .header-icon.appointments { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); }
+      .header-icon.students { background: rgba(13, 148, 136, 0.15); color: #5eead4; }
+      .header-icon.requests { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+      .header-icon.appointments { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
 
       .badge-risk {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -254,12 +264,34 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-risk.high { background: #fee2e2; color: #991b1b; }
-      .badge-risk.medium { background: #fef3c7; color: #92400e; }
-      .badge-risk.low { background: #dcfce7; color: #15803d; }
-      .badge-risk.not-assessed { background: #f1f5f9; color: #475569; }
+      .badge-risk.high {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-risk.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-risk.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-risk.not-assessed {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
 
       .badge-priority {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -268,62 +300,165 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-priority.low { background: #dcfce7; color: #15803d; }
-      .badge-priority.medium { background: #fef3c7; color: #92400e; }
-      .badge-priority.critical { background: #fee2e2; color: #991b1b; }
-      .badge-priority.not-assigned { background: #f1f5f9; color: #475569; }
-
-      .table {
-        color: var(--text-primary);
-        margin-bottom: 0;
-        font-size: 0.85rem;
+      .badge-priority.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
       }
 
-      .table thead th {
-        background: #f8fafc;
-        color: var(--text-muted);
+      .badge-priority.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-priority.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-priority.not-assigned {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .premium-table {
+        width: 100%;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        border-collapse: collapse;
+      }
+
+      .premium-table thead th {
+        background: rgba(15, 23, 42, 0.6);
+        color: #94a3b8;
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         font-weight: 600;
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         white-space: nowrap;
+        position: sticky;
+        top: 0;
       }
 
-      .table tbody td {
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid var(--border-color);
+      .premium-table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         vertical-align: middle;
       }
 
-      .table tbody tr:hover { background: rgba(148, 163, 184, 0.04); }
-      .table tbody tr:last-child td { border-bottom: none; }
+      .premium-table tbody tr {
+        transition: all 0.15s ease;
+      }
+
+      .premium-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .premium-table tbody tr:last-child td {
+        border-bottom: none;
+      }
 
       .action-btn {
-        background: rgba(13, 148, 136, 0.1);
-        color: var(--accent-teal);
-        border: 1px solid rgba(13, 148, 136, 0.2);
-        border-radius: 6px;
-        padding: 0.3rem 0.6rem;
-        font-size: 0.8rem;
+        background: rgba(13, 148, 136, 0.15);
+        color: #5eead4;
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
         font-weight: 600;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
       }
 
       .action-btn:hover {
-        background: rgba(13, 148, 136, 0.2);
-        color: var(--accent-teal);
+        background: rgba(13, 148, 136, 0.3);
+        color: #2dd4bf;
+        transform: translateY(-1px);
       }
 
       .empty-state {
         text-align: center;
-        padding: 1rem;
-        color: var(--text-muted);
-        font-size: 0.85rem;
+        padding: 3rem 1rem;
+        color: #64748b;
+        font-size: 0.9rem;
       }
 
-      .summary-card, .preview-card, .card { background: rgba(255, 255, 255, 0.95); }
+      .empty-state-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+      }
+
+      .empty-state h5 {
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+      }
+
+      .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+      }
+
+      .btn-icon:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-icon.approve {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-icon.approve:hover {
+        background: rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-icon.reject {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-icon.reject:hover {
+        background: rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-icon.complete {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-icon.complete:hover {
+        background: rgba(37, 99, 235, 0.3);
+      }
+
+      .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
     </style>
   </head>
   <body>
@@ -331,73 +466,72 @@
 
     <main class="main-content">
       <div class="container">
-        <div class="header-section">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h1>Counselor Dashboard</h1>
-              <p class="subtitle">Manage student wellbeing, appointments, and priority cases</p>
-              {% if data.counselor_name %}
-                <p class="counselor-name">Welcome, {{ data.counselor_name }}</p>
-              {% endif %}
-            </div>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Counselor Dashboard</p>
+            {% if data.counselor_name %}
+              <p class="counselor-name mb-0">Welcome, {{ data.counselor_name }}</p>
+            {% endif %}
           </div>
+          <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
         </div>
 
         <div class="row g-3 mb-4">
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card default">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
               <div class="label">Assigned Students</div>
               <div class="value default">{{ data.total_students }}</div>
               <div class="subtext">Active caseload</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card high">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
               <div class="label">High Risk</div>
               <div class="value high">{{ data.high_risk_students }}</div>
               <div class="subtext">Needs attention</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card medium">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
               <div class="label">Medium Risk</div>
               <div class="value medium">{{ data.medium_risk_students }}</div>
               <div class="subtext">Monitor closely</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card low">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
               <div class="label">Low Risk</div>
               <div class="value low">{{ data.low_risk_students }}</div>
               <div class="subtext">Stable</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card default">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
               <div class="label">Requests</div>
               <div class="value default">{{ data.appointment_requests|length }}</div>
               <div class="subtext">Pending</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card default">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
               <div class="label">Upcoming</div>
               <div class="value default">{{ data.upcoming_appointments|length }}</div>
               <div class="subtext">Appointments</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card high">
-              <div class="label">New Anonymous</div>
-              <div class="value high">{{ data.new_anonymous_messages }}</div>
-              <div class="subtext">Messages</div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
+              <div class="label">Community Posts</div>
+              <div class="value default">{{ data.total_community_posts }}</div>
+              <div class="subtext">Total posts</div>
             </div>
           </div>
-          <div class="col-md-6 col-xl-2">
-            <div class="summary-card high">
-              <div class="label">Urgent Anonymous</div>
-              <div class="value high">{{ data.urgent_anonymous_messages }}</div>
-              <div class="subtext">Priority</div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
+              <div class="label">Pinned Posts</div>
+              <div class="value default">{{ data.pinned_community_posts }}</div>
+              <div class="subtext">Pinned</div>
             </div>
           </div>
         </div>
@@ -412,7 +546,7 @@
               </div>
               {% if data.assigned_students[:5] %}
               <div class="table-responsive flex-grow-1">
-                <table class="table table-sm">
+                <table class="premium-table">
                   <thead>
                     <tr>
                       <th>Student</th>
@@ -423,7 +557,7 @@
                   <tbody>
                     {% for student in data.assigned_students[:5] %}
                     <tr>
-                      <td style="font-weight: 600;">{{ student[1] }}</td>
+                      <td style="font-weight: 600; color: #f8fafc;">{{ student[1] }}</td>
                       <td>
                         <span class="badge-risk {{ student[4]|lower|replace(' ', '-') }}">{{ student[4] or 'Not Assessed' }}</span>
                       </td>
@@ -436,7 +570,11 @@
                 </table>
               </div>
               {% else %}
-              <div class="empty-state">No students assigned yet</div>
+              <div class="empty-state">
+                <div class="empty-state-icon">&#x1F4AA;</div>
+                <h5>No Students Assigned</h5>
+                <p>Assigned students will appear here</p>
+              </div>
               {% endif %}
             </div>
           </div>
@@ -450,7 +588,7 @@
               </div>
               {% if data.appointment_requests[:5] %}
               <div class="table-responsive flex-grow-1">
-                <table class="table table-sm">
+                <table class="premium-table">
                   <thead>
                     <tr>
                       <th>Student</th>
@@ -461,23 +599,27 @@
                   <tbody>
                     {% for req in data.appointment_requests[:5] %}
                     <tr>
-                      <td style="font-weight: 600;">{{ req[1] }}</td>
-                      <td style="font-size: 0.8rem;">{{ req[2].strftime('%m/%d') if req[2] else 'N/A' }}</td>
-<td style="text-align: center;">
-                         <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
-                           <button type="submit" class="btn btn-success btn-sm py-0 px-1">✓</button>
-                         </form>
-                         <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline" onsubmit="return confirmRejectDashboard(this);">
-                           <button type="submit" class="btn btn-danger btn-sm py-0 px-1 ms-1">✗</button>
-                         </form>
-                       </td>
-                     </tr>
-                     {% endfor %}
+                      <td style="font-weight: 600; color: #f8fafc;">{{ req[1] }}</td>
+                      <td style="font-size: 0.85rem; color: #94a3b8;">{{ req[2].strftime('%m/%d') if req[2] else 'N/A' }}</td>
+                      <td style="text-align: center;">
+                        <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                          <button type="submit" class="btn-icon approve" title="Approve">&#x2713;</button>
+                        </form>
+                        <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline" onsubmit="return confirmRejectDashboard(this);">
+                          <button type="submit" class="btn-icon reject ms-1" title="Reject">&#x2717;</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
                   </tbody>
                 </table>
               </div>
               {% else %}
-              <div class="empty-state">No pending requests</div>
+              <div class="empty-state">
+                <div class="empty-state-icon">&#x1F4EB;</div>
+                <h5>No Pending Requests</h5>
+                <p>Appointment requests will appear here</p>
+              </div>
               {% endif %}
             </div>
           </div>
@@ -491,7 +633,7 @@
               </div>
               {% if data.my_appointments[:5] %}
               <div class="table-responsive flex-grow-1">
-                <table class="table table-sm">
+                <table class="premium-table">
                   <thead>
                     <tr>
                       <th>Student</th>
@@ -502,20 +644,24 @@
                   <tbody>
                     {% for appt in data.my_appointments[:5] %}
                     <tr>
-                      <td style="font-weight: 600;">{{ appt[1] }}</td>
-                      <td style="font-size: 0.8rem;">{{ appt[2].strftime('%m/%d') if appt[2] else 'N/A' }}</td>
-<td style="text-align: center;">
-                         <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST" onsubmit="return confirmCompleteDashboard(this);">
-                           <button type="submit" class="btn btn-primary btn-sm py-0 px-1">Complete</button>
-                         </form>
-                       </td>
+                      <td style="font-weight: 600; color: #f8fafc;">{{ appt[1] }}</td>
+                      <td style="font-size: 0.85rem; color: #94a3b8;">{{ appt[2].strftime('%m/%d') if appt[2] else 'N/A' }}</td>
+                      <td style="text-align: center;">
+                        <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST" onsubmit="return confirmCompleteDashboard(this);">
+                          <button type="submit" class="btn-icon complete" title="Complete">&#x2713;</button>
+                        </form>
+                      </td>
                     </tr>
                     {% endfor %}
                   </tbody>
                 </table>
               </div>
               {% else %}
-              <div class="empty-state">No appointments scheduled</div>
+              <div class="empty-state">
+                <div class="empty-state-icon">&#x1F4C5;</div>
+                <h5>No Appointments Scheduled</h5>
+                <p>Scheduled appointments will appear here</p>
+              </div>
               {% endif %}
             </div>
           </div>

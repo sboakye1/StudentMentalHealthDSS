@@ -60,7 +60,7 @@ This document describes the complete MySQL database schema for the Student Menta
 |--------|------|-----------|---------|
 | id | INT | PRIMARY KEY, AUTO_INCREMENT | Unique user identifier |
 | name | VARCHAR(255) | NOT NULL | User's full name |
-| email | VARCHAR(255) | UNIQUE, NOT NULL | Email for authentication/notifications |
+| email | VARCHAR(255) | UNIQUE, NOT NULL | Email for authentication |
 | password_hash | VARCHAR(255) | NOT NULL | Bcrypt or Argon2 hash (never plain text) |
 | role | ENUM | DEFAULT 'student' | Defines user type: student, counselor, admin |
 | is_active | BOOLEAN | DEFAULT TRUE | Soft delete for compliance |
@@ -930,11 +930,7 @@ SET GLOBAL long_query_time = 2;
 - Add `survey_analytics` for trend analysis
 - Add `dss_model_metrics` to track algorithm performance
 
-### Phase 2.2: Notification System
-- Add `notifications` table for alerts
-- Add `notification_preferences` for student opt-in
-
-### Phase 2.3: Resource Directory
+### Phase 2.2: Resource Directory
 - Add `resources` table for counseling services
 - Add `resource_recommendations` linking DSS to resources
 

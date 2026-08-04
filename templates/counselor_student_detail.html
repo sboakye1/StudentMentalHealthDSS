@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student Detail - Counselor Portal</title>
+    <title>Student Detail - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -23,19 +23,19 @@
 
       * { box-sizing: border-box; }
 
-       body {
-         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-         background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background.JPG') }}") center/cover no-repeat fixed;
-         color: var(--text-primary);
-         min-height: 100vh;
-         margin: 0;
-       }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 8.jpg') }}") center/cover no-repeat fixed;
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+      }
 
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -101,7 +101,7 @@
       }
 
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -119,6 +119,56 @@
         }
       }
 
+      .page-header {
+        padding: 2rem 0 1rem;
+      }
+
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: #ffffff;
+      }
+
+      .page-header .subtitle {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .glass-card .card-header {
+        padding: 0 0 1rem 0;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .glass-card .card-header h5 {
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+        color: #f8fafc;
+      }
+
       .header-icon {
         width: 32px;
         height: 32px;
@@ -129,12 +179,15 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.profile { background: rgba(13, 148, 136, 0.1); color: var(--accent-teal); }
-      .header-icon.survey { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); }
-      .header-icon.appointments { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-      .header-icon.notes { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
+      .header-icon.profile { background: rgba(13, 148, 136, 0.15); color: #5eead4; }
+      .header-icon.survey { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+      .header-icon.appointments { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+      .header-icon.notes { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
 
       .badge-risk {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -143,12 +196,34 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-risk.high { background: #fee2e2; color: #991b1b; }
-      .badge-risk.medium { background: #fef3c7; color: #92400e; }
-      .badge-risk.low { background: #dcfce7; color: #15803d; }
-      .badge-risk.not-assessed { background: #f1f5f9; color: #475569; }
+      .badge-risk.high {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-risk.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-risk.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-risk.not-assessed {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
 
       .badge-priority {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -157,41 +232,72 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-priority.low { background: #dcfce7; color: #15803d; }
-      .badge-priority.medium { background: #fef3c7; color: #92400e; }
-      .badge-priority.critical { background: #fee2e2; color: #991b1b; }
-      .badge-priority.not-assigned { background: #f1f5f9; color: #475569; }
-
-      .main-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
+      .badge-priority.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
       }
 
-      .main-card .card-header {
-        padding: 0 0 1rem 0;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
+      .badge-priority.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-priority.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-priority.not-assigned {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .badge-status {
+        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
 
-      .main-card .card-header h5 {
-        font-weight: 600;
-        font-size: 1rem;
-        margin: 0;
-        color: var(--text-primary);
+      .badge-status.scheduled {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+      }
+
+      .badge-status.completed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-status.cancelled {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .badge-status.pending {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
       }
 
       .info-row {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         font-size: 0.9rem;
         gap: 1rem;
       }
@@ -199,93 +305,169 @@
       .info-row:last-child { border-bottom: none; }
 
       .info-label {
-        color: var(--text-secondary);
+        color: #94a3b8;
         font-weight: 500;
         flex-shrink: 0;
       }
 
       .info-value {
-        color: var(--text-primary);
+        color: #cbd5e1;
         font-weight: 600;
         text-align: right;
         word-break: break-word;
       }
 
       .btn-back {
-        background: rgba(13, 148, 136, 0.1);
-        color: var(--accent-teal);
-        border: 1px solid rgba(13, 148, 136, 0.2);
-        border-radius: 6px;
-        padding: 0.4rem 0.85rem;
+        background: rgba(13, 148, 136, 0.15);
+        color: #5eead4;
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
         font-size: 0.85rem;
         font-weight: 500;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
       }
 
       .btn-back:hover {
-        background: rgba(13, 148, 136, 0.2);
-        color: var(--accent-teal);
+        background: rgba(13, 148, 136, 0.3);
+        color: #2dd4bf;
+        transform: translateY(-1px);
       }
 
-      .table {
-        color: var(--text-primary);
-        margin-bottom: 0;
-        font-size: 0.85rem;
+      .premium-table {
+        width: 100%;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        border-collapse: collapse;
       }
 
-      .table thead th {
-        background: #f8fafc;
-        color: var(--text-muted);
+      .premium-table thead th {
+        background: rgba(15, 23, 42, 0.6);
+        color: #94a3b8;
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         font-weight: 600;
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         white-space: nowrap;
+        position: sticky;
+        top: 0;
       }
 
-      .table tbody td {
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.85rem;
+      .premium-table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         vertical-align: middle;
       }
 
-      .table tbody tr:hover { background: rgba(148, 163, 184, 0.04); }
-      .table tbody tr:last-child td { border-bottom: none; }
-
-      .badge-status {
-        padding: 0.35rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+      .premium-table tbody tr {
+        transition: all 0.15s ease;
       }
 
-      .badge-status.scheduled { background: #eff6ff; color: #1d4ed8; }
-      .badge-status.completed { background: #dcfce7; color: #15803d; }
-      .badge-status.cancelled { background: #f1f5f9; color: #475569; }
-      .badge-status.pending { background: #fef3c7; color: #92400e; }
+      .premium-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .premium-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .note-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .note-item:last-child { border-bottom: none; }
+
+      .note-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+      }
+
+      .note-date {
+        font-size: 0.8rem;
+        color: #64748b;
+      }
+
+      .btn-edit-note {
+        background: rgba(13, 148, 136, 0.15);
+        color: #5eead4;
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-radius: 8px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .btn-edit-note:hover {
+        background: rgba(13, 148, 136, 0.3);
+        color: #2dd4bf;
+      }
 
       .empty-state {
         text-align: center;
-        padding: 1.5rem 1rem;
-        color: var(--text-muted);
-        font-size: 0.85rem;
+        padding: 3rem 1rem;
+        color: #64748b;
+        font-size: 0.9rem;
       }
 
-      .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
+      .empty-state-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
       }
 
-      .form-control:focus, .form-select:focus {
-        border-color: var(--accent-teal);
-        box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
+      .empty-state h5 {
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+      }
+
+      .form-control, .form-select, .form-check-input {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #f1f5f9 !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 0.85rem !important;
+        font-size: 0.85rem !important;
+      }
+
+      .form-control::placeholder {
+        color: #64748b !important;
+      }
+
+      .form-control:focus, .form-select:focus, .form-check-input:focus {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border-color: var(--accent-teal) !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.25) !important;
+        color: #f1f5f9 !important;
+      }
+
+      .form-select option {
+        background: #1e293b;
+        color: #f1f5f9;
+      }
+
+      .form-label {
+        color: #cbd5e1;
+        font-weight: 500;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
       }
 
       .btn-submit {
@@ -293,19 +475,20 @@
         border: none;
         color: #fff;
         font-weight: 600;
-        border-radius: 8px;
-        padding: 0.5rem 1.25rem;
-        font-size: 0.85rem;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
         transition: all 0.2s ease;
       }
 
       .btn-submit:hover {
         background: #0f766e;
         color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px rgba(13, 148, 136, 0.35);
       }
 
       .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-      .card { background: rgba(255, 255, 255, 0.95); }
     </style>
   </head>
   <body>
@@ -313,21 +496,17 @@
 
     <main class="main-content">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.5rem; color: var(--text-primary);">Student Profile</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.85rem; color: var(--text-secondary);">
-              {{ data.student[2] }} &middot; {{ data.student[1] }}
-            </p>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Student Profile</p>
           </div>
-          <a href="{{ url_for('counselor_students') }}" class="btn-back">
-            &#x21A9; Back to Students
-          </a>
+          <a href="{{ url_for('counselor_students') }}" class="btn-back">Back to Students</a>
         </div>
 
         <div class="row g-3 mb-4">
           <div class="col-lg-6">
-            <div class="main-card">
+            <div class="glass-card">
               <div class="card-header">
                 <span class="header-icon profile">&#x1F464;</span>
                 <h5>Student Information</h5>
@@ -364,7 +543,7 @@
           </div>
 
           <div class="col-lg-6">
-            <div class="main-card">
+            <div class="glass-card">
               <div class="card-header">
                 <span class="header-icon survey">&#x1F4CA;</span>
                 <h5>Survey Summary</h5>
@@ -373,15 +552,15 @@
                 <span class="info-label">Intervention Required</span>
                 <span class="info-value">
                   {% if data.student[8] %}
-                    <span style="color: var(--accent-rose); font-weight: 600;">Yes</span>
+                    <span style="color: #fca5a5; font-weight: 600;">Yes</span>
                   {% else %}
-                    <span style="color: var(--accent-green); font-weight: 600;">No</span>
+                    <span style="color: #6ee7b7; font-weight: 600;">No</span>
                   {% endif %}
                 </span>
               </div>
               <div class="info-row">
                 <span class="info-label">Recommendation</span>
-                <span class="info-value" style="text-align: right; font-size: 0.85rem;">
+                <span class="info-value" style="text-align: right; font-size: 0.85rem; font-weight: 400;">
                   {% if data.student[9] %}{{ data.student[9][:60] }}{% if data.student[9]|length > 60 %}...{% endif %}{% else %}No recommendation{% endif %}
                 </span>
               </div>
@@ -391,14 +570,14 @@
 
         <div class="row g-3 mb-4">
           <div class="col-lg-6">
-            <div class="main-card">
+            <div class="glass-card">
               <div class="card-header">
                 <span class="header-icon appointments">&#x1F4C5;</span>
                 <h5>Appointment History</h5>
               </div>
               {% if data.appointments %}
               <div class="table-responsive">
-                <table class="table">
+                <table class="premium-table">
                   <thead>
                     <tr>
                       <th>Date/Time</th>
@@ -408,7 +587,7 @@
                   <tbody>
                     {% for appt in data.appointments %}
                     <tr>
-                      <td>{{ appt[1].strftime('%Y-%m-%d %H:%M') if appt[1] else 'N/A' }}</td>
+                      <td style="color: #cbd5e1;">{{ appt[1].strftime('%Y-%m-%d %H:%M') if appt[1] else 'N/A' }}</td>
                       <td>
                         <span class="badge-status {{ appt[2]|lower|replace(' ', '-') if appt[2] else 'pending' }}">{{ appt[2] or 'Unknown' }}</span>
                       </td>
@@ -418,40 +597,48 @@
                 </table>
               </div>
               {% else %}
-              <div class="empty-state">No appointments found</div>
+              <div class="empty-state">
+                <div class="empty-state-icon">&#x1F4C5;</div>
+                <h5>No Appointments Found</h5>
+                <p>Appointment history will appear here</p>
+              </div>
               {% endif %}
             </div>
           </div>
 
           <div class="col-lg-6">
-            <div class="main-card">
+            <div class="glass-card">
               <div class="card-header">
                 <span class="header-icon notes">&#x1F4AC;</span>
                 <h5>Counseling Notes</h5>
               </div>
               {% if data.notes %}
               {% for note in data.notes %}
-              <div class="border-bottom pb-2 mb-2" style="border-color: var(--border-color);">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                  <span class="text-muted" style="font-size: 0.8rem;">{{ note[4].strftime('%Y-%m-%d %H:%M') if note[4] else 'N/A' }}</span>
-                  <a href="{{ url_for('counselor_edit_note', note_id=note[0]) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <div class="note-item">
+                <div class="note-meta">
+                  <span class="note-date">{{ note[4].strftime('%Y-%m-%d %H:%M') if note[4] else 'N/A' }}</span>
+                  <a href="{{ url_for('counselor_edit_note', note_id=note[0]) }}" class="btn-edit-note">Edit</a>
                 </div>
                 {% if note[1] %}
-                <p class="mb-1" style="font-size: 0.85rem;"><strong>Notes:</strong> {{ note[1][:80] }}{% if note[1]|length > 80 %}...{% endif %}</p>
+                <p class="mb-1" style="font-size: 0.85rem; color: #cbd5e1;"><strong style="color: #f8fafc;">Notes:</strong> {{ note[1][:80] }}{% if note[1]|length > 80 %}...{% endif %}</p>
                 {% endif %}
                 {% if note[3] %}
-                <p class="mb-0" style="font-size: 0.8rem; color: var(--text-secondary);"><strong>Mood:</strong> {{ note[3] }}</p>
+                <p class="mb-0" style="font-size: 0.8rem; color: #94a3b8;"><strong style="color: #f8fafc;">Mood:</strong> {{ note[3] }}</p>
                 {% endif %}
               </div>
               {% endfor %}
               {% else %}
-              <div class="empty-state">No previous notes</div>
+              <div class="empty-state">
+                <div class="empty-state-icon">&#x1F4AC;</div>
+                <h5>No Previous Notes</h5>
+                <p>Session notes will appear here</p>
+              </div>
               {% endif %}
             </div>
           </div>
         </div>
 
-        <div class="main-card">
+        <div class="glass-card">
           <div class="card-header">
             <span class="header-icon notes">&#x1F4AC;</span>
             <h5>Add Session Note</h5>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>View Anonymous Message - Counselor Portal</title>
+    <title>View Anonymous Message - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -15,9 +15,14 @@
         --text-muted: #64748b;
         --border-color: #e2e8f0;
         --accent-teal: #0d9488;
+        --accent-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
         --accent-rose: #ef4444;
       }
+
       * { box-sizing: border-box; }
+
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background.JPG') }}") center/cover no-repeat fixed;
@@ -25,11 +30,12 @@
         min-height: 100vh;
         margin: 0;
       }
+
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -37,6 +43,7 @@
         z-index: 1000;
         overflow-y: auto;
       }
+
       .sidebar-brand {
         font-weight: 700;
         font-size: 1.1rem;
@@ -46,6 +53,7 @@
         margin-bottom: 2rem;
         padding-left: 0.5rem;
       }
+
       .sidebar-logo {
         height: 32px;
         width: auto;
@@ -57,9 +65,11 @@
         padding: 0;
         margin: 0;
       }
+
       .sidebar-nav .nav-item {
         margin-bottom: 0.25rem;
       }
+
       .sidebar-nav .nav-link {
         display: flex;
         align-items: center;
@@ -72,125 +82,29 @@
         font-size: 0.9rem;
         transition: all 0.2s ease;
       }
+
       .sidebar-nav .nav-link:hover {
         background: rgba(13, 148, 136, 0.05);
         color: var(--accent-teal);
       }
+
       .sidebar-nav .nav-link.active {
         background: rgba(13, 148, 136, 0.1);
         color: var(--accent-teal);
         font-weight: 600;
       }
+
       .sidebar-nav .nav-icon {
         font-size: 1rem;
         width: 20px;
         text-align: center;
       }
+
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
-      .message-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.5rem;
-      }
-      .message-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-      }
-      .message-meta {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-      }
-      .meta-item {
-        display: flex;
-        flex-direction: column;
-      }
-      .meta-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-muted);
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-      }
-      .meta-value {
-        font-size: 1rem;
-        color: var(--text-primary);
-        font-weight: 500;
-      }
-      .message-body {
-        background: #f8fafc;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-        white-space: pre-wrap;
-      }
-      .btn-primary-custom {
-        background: linear-gradient(135deg, var(--accent-teal), #0f766e);
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        border-radius: 10px;
-        padding: 0.75rem 2rem;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.2s ease;
-      }
-      .btn-primary-custom:hover {
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(13, 148, 136, 0.25);
-      }
-      .btn-secondary-custom {
-        background: #fff;
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
-        font-weight: 600;
-        border-radius: 10px;
-        padding: 0.75rem 2rem;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.2s ease;
-      }
-      .btn-secondary-custom:hover {
-        background: #f8fafc;
-        color: var(--text-primary);
-      }
-      .badge-urgent {
-        background: #fee2e2;
-        color: #991b1b;
-        padding: 0.35rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 600;
-      }
-      .badge-status {
-        padding: 0.35rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 600;
-      }
-      .badge-new {
-        background: #fef3c7;
-        color: #92400e;
-      }
-      .badge-read {
-        background: #dcfce7;
-        color: #15803d;
-      }
-      .badge-archived {
-        background: #f1f5f9;
-        color: #475569;
-      }
+
       @media (max-width: 991.98px) {
         .sidebar {
           width: 100%;
@@ -199,13 +113,199 @@
           border-right: none;
           border-bottom: 1px solid var(--border-color);
         }
+
         .main-content {
           margin-left: 0;
         }
       }
 
+      .page-header {
+        padding: 2rem 0 1rem;
+      }
+
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: #ffffff;
+      }
+
+      .page-header .subtitle {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+
+      .message-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .meta-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .meta-value {
+        font-size: 1rem;
+        color: #f8fafc;
+        font-weight: 500;
+      }
+
+      .message-body {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        color: #cbd5e1;
+        font-size: 0.95rem;
+      }
+
+      .badge-urgent {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-new {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-read {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-archived {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .btn-primary-custom {
+        background: var(--accent-blue);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+      }
+
+      .btn-primary-custom:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+      }
+
+      .btn-secondary-custom {
+        background: rgba(100, 116, 139, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-secondary-custom:hover {
+        background: rgba(100, 116, 139, 0.25);
+        color: #f1f5f9;
+        transform: translateY(-1px);
+      }
+
+      .btn-back {
+        background: rgba(13, 148, 136, 0.15);
+        color: #5eead4;
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-back:hover {
+        background: rgba(13, 148, 136, 0.3);
+        color: #2dd4bf;
+        transform: translateY(-1px);
+      }
+
       .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-      .message-card { background: rgba(255, 255, 255, 0.95); }
     </style>
   </head>
   <body>
@@ -213,15 +313,15 @@
 
     <main class="main-content">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Message Details</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Anonymous message information</p>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Message Details</p>
           </div>
-          <a href="{{ url_for('counselor_anonymous_messages') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">&larr; Back</a>
+          <a href="{{ url_for('counselor_anonymous_messages') }}" class="btn-back">&larr; Back</a>
         </div>
 
-        <div class="message-card">
+        <div class="glass-card">
           <div class="message-header">
             <div>
               <span class="badge-{% if message[4] == 'New' %}new{% elif message[4] == 'Read' %}read{% else %}archived{% endif %} badge-status">{{ message[4] }}</span>
@@ -248,7 +348,7 @@
             </div>
           </div>
 
-          <div class="meta-label" style="margin-bottom: 0.5rem;">Full Message</div>
+          <div class="meta-label" style="margin-bottom: 0.5rem; color: #94a3b8;">Full Message</div>
           <div class="message-body">{{ message[2] }}</div>
 
           <div class="d-flex gap-2">
@@ -259,7 +359,7 @@
             {% endif %}
             {% if message[4] != 'Archived' %}
             <form action="{{ url_for('counselor_archive_anonymous', message_id=message[0]) }}" method="POST" class="d-inline">
-              <button type="submit" class="btn-primary-custom" style="background: linear-gradient(135deg, #64748b, #475569);">Archive</button>
+              <button type="submit" class="btn-primary-custom" style="background: rgba(100, 116, 139, 0.15); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.25);">Archive</button>
             </form>
             {% endif %}
             <a href="{{ url_for('counselor_anonymous_messages') }}" class="btn-secondary-custom">Back</a>
@@ -267,5 +367,7 @@
         </div>
       </div>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

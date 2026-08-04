@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student Dashboard - Student Mental Health DSS</title>
+    <title>Student Dashboard - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -25,18 +25,17 @@
 
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 1.JPG') }}") center/cover no-repeat fixed;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background.jpg') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         min-height: 100vh;
         margin: 0;
       }
 
-      /* Sidebar Styles */
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -95,9 +94,8 @@
         text-align: center;
       }
 
-      /* Main Content Styles */
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -115,33 +113,66 @@
         }
       }
 
+      .page-header {
+        padding: 2rem 0 1rem;
+      }
+
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: #ffffff;
+      }
+
+      .page-header .subtitle {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
       .summary-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         padding: 1.25rem;
         height: 100%;
-        transition: all 0.2s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
 
       .summary-card:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
         transform: translateY(-2px);
       }
-
-      .summary-card.high { border-top: 3px solid var(--accent-rose); }
-      .summary-card.medium { border-top: 3px solid var(--accent-amber); }
-      .summary-card.low { border-top: 3px solid var(--accent-green); }
-      .summary-card.default { border-top: 3px solid var(--accent-blue); }
 
       .summary-card .label {
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: var(--text-muted);
+        color: #94a3b8;
         font-weight: 600;
         margin-bottom: 0.5rem;
       }
@@ -150,41 +181,89 @@
         font-size: 1.75rem;
         font-weight: 700;
         line-height: 1.2;
+        color: #f8fafc;
       }
 
-      .summary-card .value.high { color: var(--accent-rose); }
-      .summary-card .value.medium { color: var(--accent-amber); }
-      .summary-card .value.low { color: var(--accent-green); }
-      .summary-card .value.default { color: var(--text-primary); }
+      .summary-card .value.high { color: #fca5a5; }
+      .summary-card .value.medium { color: #fcd34d; }
+      .summary-card .value.low { color: #6ee7b7; }
+      .summary-card .value.default { color: #f8fafc; }
 
       .summary-card .subtext {
         font-size: 0.85rem;
-        color: var(--text-muted);
+        color: #64748b;
         margin-top: 0.25rem;
       }
 
-      .main-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
-        height: 100%;
-      }
-
-      .main-card .card-header {
-        padding: 0 0 1rem 0;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
+      .info-row {
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 0.9rem;
+        gap: 1rem;
       }
 
-      .main-card .card-header h5 {
+      .info-row:last-child { border-bottom: none; }
+
+      .info-label {
+        color: #94a3b8;
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .info-value {
+        color: #cbd5e1;
         font-weight: 600;
-        font-size: 1rem;
-        margin: 0;
-        color: var(--text-primary);
+        text-align: right;
+        word-break: break-word;
+      }
+
+      .action-btn {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+      }
+
+      .action-btn:hover {
+        background: rgba(37, 99, 235, 0.3);
+        color: #93c5fd;
+        transform: translateY(-1px);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+
+      .empty-state-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+      }
+
+      .empty-state h5 {
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
       }
 
       .header-icon {
@@ -197,12 +276,15 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.wellness { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); }
-      .header-icon.appointment { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-      .header-icon.actions { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); }
-      .header-icon.tips { background: rgba(13, 148, 136, 0.1); color: var(--accent-teal); }
+      .header-icon.wellness { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+      .header-icon.appointment { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+      .header-icon.actions { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+      .header-icon.tips { background: rgba(13, 148, 136, 0.15); color: #5eead4; }
 
       .badge-risk {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -211,13 +293,40 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-risk.high { background: #fee2e2; color: #991b1b; }
-      .badge-risk.medium { background: #fef3c7; color: #92400e; }
-      .badge-risk.low { background: #dcfce7; color: #15803d; }
-      .badge-risk.critical { background: #fee2e2; color: #991b1b; }
-      .badge-risk.not-assessed { background: #f1f5f9; color: #475569; }
+      .badge-risk.high {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-risk.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-risk.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-risk.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-risk.not-assessed {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
 
       .badge-priority {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -226,12 +335,34 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-priority.low { background: #dcfce7; color: #15803d; }
-      .badge-priority.medium { background: #fef3c7; color: #92400e; }
-      .badge-priority.critical { background: #fee2e2; color: #991b1b; }
-      .badge-priority.not-assigned { background: #f1f5f9; color: #475569; }
+      .badge-priority.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-priority.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-priority.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-priority.not-assigned {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
 
       .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -240,45 +371,38 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-status.scheduled { background: #eff6ff; color: #1d4ed8; }
-      .badge-status.completed { background: #dcfce7; color: #15803d; }
-      .badge-status.cancelled { background: #f1f5f9; color: #475569; }
-
-      .badge-status.scheduled-badge { background: #eff6ff; color: #1d4ed8; }
-
-      .info-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 0.6rem 0;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.9rem;
-        gap: 1rem;
+      .badge-status.scheduled {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
       }
 
-      .info-row:last-child { border-bottom: none; }
-
-      .info-label {
-        color: var(--text-secondary);
-        font-weight: 500;
-        flex-shrink: 0;
+      .badge-status.completed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
       }
 
-      .info-value {
-        color: var(--text-primary);
-        font-weight: 600;
-        text-align: right;
-        word-break: break-word;
+      .badge-status.cancelled {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
       }
 
-      .action-btn {
-        background: rgba(37, 99, 235, 0.1);
-        color: var(--accent-blue);
-        border: 1px solid rgba(37, 99, 235, 0.2);
-        border-radius: 6px;
+      .badge-status.scheduled-badge {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-cancel {
+        background: rgba(100, 116, 139, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 8px;
         padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: 0.85rem;
+        font-weight: 500;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -286,253 +410,157 @@
         transition: all 0.2s ease;
       }
 
-      .action-btn:hover {
-        background: rgba(37, 99, 235, 0.2);
-        color: var(--accent-blue);
+      .btn-cancel:hover {
+        background: rgba(100, 116, 139, 0.25);
+        color: #f1f5f9;
+        transform: translateY(-1px);
       }
 
-      .action-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-      }
-
-      .empty-state {
-        text-align: center;
-        padding: 2rem 1rem;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-      }
-
-      .right-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-      }
-
-      .right-card:last-child {
-        margin-bottom: 0;
-      }
-
-      .right-card .card-header {
-        padding: 0 0 0.75rem 0;
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .right-card .card-header h6 {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin: 0;
-        color: var(--text-primary);
-      }
-
-      .appointments-box {
-        background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-        border: 1px solid #bbf7d0;
-        border-radius: 12px;
-        padding: 1.25rem;
-      }
-
-      .appointments-box .info-row {
-        padding: 0.4rem 0;
-        font-size: 0.85rem;
-      }
-
-      .appointments-box .info-label {
-        font-size: 0.8rem;
-      }
-
-      .next-steps-box {
-        background: linear-gradient(135deg, #fefeff, #fafbff);
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 1.25rem;
-      }
-
-      .next-steps-box h6 {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.75rem;
-        color: var(--accent-blue);
-      }
-
-      .next-steps-box ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-      }
-
-      .next-steps-box li {
-        padding: 0.35rem 0;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      .next-steps-box li:last-child { border-bottom: none; }
-
-      /* Responsive adjustments */
-      @media (max-width: 991.98px) {
-        .right-card {
-          margin-bottom: 1rem;
-        }
-      }
-
-      .btn-cancel {
-        background: rgba(37, 99, 235, 0.1);
-        color: var(--accent-blue);
-        border: 1px solid rgba(37, 99, 235, 0.2);
-        border-radius: 6px;
-        padding: 0.4rem 0.85rem;
+      .btn-logout {
+        background: rgba(100, 116, 139, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
         font-size: 0.85rem;
         font-weight: 500;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
       }
 
-      .btn-cancel:hover {
-        background: rgba(37, 99, 235, 0.2);
-        color: var(--accent-blue);
+      .btn-logout:hover {
+        background: rgba(100, 116, 139, 0.25);
+        color: #f1f5f9;
+        transform: translateY(-1px);
       }
 
       .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-      .summary-card, .preview-card, .card { background: rgba(255, 255, 255, 0.95); }
+      .card { background: rgba(255, 255, 255, 0.92); }
     </style>
   </head>
   <body>
-    <!-- Sidebar -->
         {% include 'sidebar_student.html' %}
 
-    <!-- Main Content -->
     <main class="main-content">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Student Wellness Dashboard</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">
-              Student: {{ data.name }} &middot; Assigned Counselor: {{ data.assigned_counselor if data.assigned_counselor else 'Not yet assigned' }}
-            </p>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Student Wellness Dashboard</p>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
-              &#x1F511; Logout
-            </a>
+          <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
+              <div class="label">Risk Level</div>
+              <div class="value">
+                <span class="badge-risk {{ data.risk_level|lower|replace(' ', '-') }}">{{ data.risk_level }}</span>
+              </div>
+              <div class="subtext">Based on latest assessment</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
+              <div class="label">Priority</div>
+              <div class="value">
+                <span class="badge-priority {{ data.priority|lower|replace(' ', '-') }}">{{ data.priority }}</span>
+              </div>
+              <div class="subtext">Recommended action level</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
+              <div class="label">Intervention Required</div>
+              <div class="value">
+                {% if data.intervention_required %}
+                  <span style="color: #fca5a5; font-weight: 700;">Yes</span>
+                {% else %}
+                  <span style="color: #6ee7b7; font-weight: 700;">No</span>
+                {% endif %}
+              </div>
+              <div class="subtext">Action needed</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="summary-card">
+              <div class="label">Surveys Completed</div>
+              <div class="value">{{ data.total_surveys }}</div>
+              <div class="subtext">Total submissions</div>
+            </div>
           </div>
         </div>
 
-      <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-3">
-          <div class="summary-card {% if data.risk_level == 'High' %}high{% elif data.risk_level == 'Medium' %}medium{% elif data.risk_level == 'Low' %}low{% else %}default{% endif %}">
-            <div class="label">Risk Level</div>
-            <div class="value {% if data.risk_level == 'High' %}high{% elif data.risk_level == 'Medium' %}medium{% elif data.risk_level == 'Low' %}low{% else %}default{% endif %}">
-              <span class="badge-risk {{ data.risk_level|lower|replace(' ', '-') }}">{{ data.risk_level }}</span>
-            </div>
-            <div class="subtext">Based on latest assessment</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="summary-card {% if data.priority == 'Critical' %}high{% elif data.priority == 'Medium' %}medium{% elif data.priority == 'Low' %}low{% else %}default{% endif %}">
-            <div class="label">Priority</div>
-            <div class="value {% if data.priority == 'Critical' %}high{% elif data.priority == 'Medium' %}medium{% elif data.priority == 'Low' %}low{% else %}default{% endif %}">
-              <span class="badge-priority {{ data.priority|lower|replace(' ', '-') }}">{{ data.priority }}</span>
-            </div>
-            <div class="subtext">Recommended action level</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="summary-card default">
-            <div class="label">Intervention Required</div>
-            <div class="value default">
-              {% if data.intervention_required %}
-                <span style="color: var(--accent-rose); font-weight: 700;">Yes</span>
-              {% else %}
-                <span style="color: var(--accent-green); font-weight: 700;">No</span>
+        <div class="row g-3 mb-4">
+          <div class="col-lg-8">
+            <div class="glass-card">
+              <div class="card-header" style="padding: 0 0 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 0.5rem;">
+                <span class="header-icon wellness">&#x1F4CA;</span>
+                <h5 style="font-weight: 600; font-size: 1rem; margin: 0; color: #f8fafc;">Wellness Summary</h5>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Risk Level</span>
+                <span class="info-value">
+                  <span class="badge-risk {{ data.risk_level|lower|replace(' ', '-') }}">{{ data.risk_level }}</span>
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Priority</span>
+                <span class="info-value">
+                  <span class="badge-priority {{ data.priority|lower|replace(' ', '-') }}">{{ data.priority }}</span>
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Current Score</span>
+                <span class="info-value">{{ data.score or 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last Assessment</span>
+                <span class="info-value">
+                  {{ data.last_assessment.strftime('%Y-%m-%d %H:%M') if data.last_assessment else 'Not yet assessed' }}
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Intervention Required</span>
+                <span class="info-value">
+                  {% if data.intervention_required %}
+                    <span style="color: #fca5a5; font-weight: 600;">Yes</span>
+                  {% else %}
+                    <span style="color: #6ee7b7; font-weight: 600;">No</span>
+                  {% endif %}
+                </span>
+              </div>
+              <hr style="margin: 1rem 0; border-color: rgba(255, 255, 255, 0.08);">
+              <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                <span class="info-label">Wellness Summary</span>
+                <span class="info-value" style="text-align: left; font-weight: 400; font-size: 0.95rem; color: #cbd5e1;">
+                  {{ data.recommendation }}
+                </span>
+              </div>
+              {% if data.next_steps %}
+              <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                <span class="info-label">Recommended Next Steps</span>
+                <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #94a3b8; list-style-type: disc;">
+                  {% for step in data.next_steps %}
+                  <li style="padding: 0.35rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">{{ step }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
               {% endif %}
             </div>
-            <div class="subtext">Action needed</div>
           </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="summary-card default">
-            <div class="label">Surveys Completed</div>
-            <div class="value default">{{ data.total_surveys }}</div>
-            <div class="subtext">Total submissions</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="row g-3 mb-4">
-        <div class="col-lg-8">
-          <div class="main-card">
-            <div class="card-header">
-              <span class="header-icon wellness">&#x1F4CA;</span>
-              <h5>Wellness Summary</h5>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Risk Level</span>
-              <span class="info-value">
-                <span class="badge-risk {{ data.risk_level|lower|replace(' ', '-') }}">{{ data.risk_level }}</span>
-              </span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Priority</span>
-              <span class="info-value">
-                <span class="badge-priority {{ data.priority|lower|replace(' ', '-') }}">{{ data.priority }}</span>
-              </span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Current Score</span>
-              <span class="info-value">{{ data.score or 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Last Assessment</span>
-              <span class="info-value">
-                {{ data.last_assessment.strftime('%Y-%m-%d %H:%M') if data.last_assessment else 'Not yet assessed' }}
-              </span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Intervention Required</span>
-              <span class="info-value">
-                {% if data.intervention_required %}
-                  <span style="color: var(--accent-rose); font-weight: 600;">Yes</span>
-                {% else %}
-                  <span style="color: var(--accent-green); font-weight: 600;">No</span>
-                {% endif %}
-              </span>
-            </div>
-            <hr style="margin: 1rem 0; border-color: var(--border-color);">
-            <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
-              <span class="info-label">Wellness Summary</span>
-              <span class="info-value" style="text-align: left; font-weight: 400; font-size: 0.95rem;">
-                {{ data.recommendation }}
-              </span>
-            </div>
-            {% if data.next_steps %}
-            <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
-              <span class="info-label">Recommended Next Steps</span>
-              <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
-                {% for step in data.next_steps %}
-                <li>{{ step }}</li>
-                {% endfor %}
-              </ul>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="col-lg-4 d-flex flex-column">
-          <div class="right-card">
-            <div class="card-header">
-              <span class="header-icon appointment">&#x1F4C5;</span>
-              <h6>Upcoming Appointment</h6>
-            </div>
-            {% if data.upcoming_appointment %}
-            <div class="appointments-box">
+          <div class="col-lg-4 d-flex flex-column">
+            <div class="glass-card">
+              <div class="card-header" style="padding: 0 0 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 0.5rem;">
+                <span class="header-icon appointment">&#x1F4C5;</span>
+                <h5 style="font-weight: 600; font-size: 1rem; margin: 0; color: #f8fafc;">Upcoming Appointment</h5>
+              </div>
+              {% if data.upcoming_appointment %}
               <div class="info-row">
                 <span class="info-label">Date</span>
                 <span class="info-value">{{ data.upcoming_appointment[0].strftime('%Y-%m-%d') if data.upcoming_appointment[0] else 'N/A' }}</span>
@@ -548,17 +576,16 @@
               <div class="info-row" style="border-bottom: none; padding-top: 0.75rem;">
                 <a href="{{ url_for('student_appointment') }}" class="action-btn" style="margin-top: 0.25rem;">Request New</a>
               </div>
+              {% else %}
+              <div class="empty-state py-2">No upcoming appointment yet</div>
+              <a href="{{ url_for('student_appointment') }}" class="action-btn" style="margin-top: 0.75rem;">Request Appointment</a>
+              {% endif %}
             </div>
-            {% else %}
-            <div class="empty-state py-2">No upcoming appointment yet</div>
-            <a href="{{ url_for('student_appointment') }}" class="action-btn" style="margin-top: 0.75rem;">Request Appointment</a>
-            {% endif %}
           </div>
         </div>
       </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </script>
   </body>
 </html>

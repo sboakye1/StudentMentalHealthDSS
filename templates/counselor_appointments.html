@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Scheduled Appointments - Counselor Portal</title>
+    <title>Scheduled Appointments - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -23,19 +23,19 @@
 
       * { box-sizing: border-box; }
 
-       body {
-         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-         background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background.JPG') }}") center/cover no-repeat fixed;
-         color: var(--text-primary);
-         min-height: 100vh;
-         margin: 0;
-       }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 14.webp') }}") center/cover no-repeat fixed;
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+      }
 
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -101,7 +101,7 @@
       }
 
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -119,27 +119,54 @@
         }
       }
 
-      .main-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
+      .page-header {
+        padding: 2rem 0 1rem;
       }
 
-      .main-card .card-header {
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: #ffffff;
+      }
+
+      .page-header .subtitle {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .glass-card .card-header {
         padding: 0 0 1rem 0;
         margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
 
-      .main-card .card-header h5 {
+      .glass-card .card-header h5 {
         font-weight: 600;
         font-size: 1rem;
         margin: 0;
-        color: var(--text-primary);
+        color: #f8fafc;
       }
 
       .header-icon {
@@ -152,9 +179,57 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.appointments { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); }
+      .header-icon.appointments { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+
+      .filter-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .filter-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .filter-card .form-control,
+      .filter-card .form-select {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+        border-radius: 10px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .filter-card .form-control::placeholder {
+        color: #64748b;
+      }
+
+      .filter-card .form-control:focus,
+      .filter-card .form-select:focus {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
+        color: #f1f5f9;
+      }
+
+      .filter-card .form-select option {
+        background: #1e293b;
+        color: #f1f5f9;
+      }
 
       .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -163,104 +238,267 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-status.scheduled { background: rgba(37, 99, 235, 0.1); color: #1e40af; }
-      .badge-status.completed { background: rgba(16, 185, 129, 0.1); color: #0f766e; }
-      .badge-status.cancelled { background: rgba(148, 163, 184, 0.2); color: #475569; }
-      .badge-status.pending { background: rgba(245, 158, 11, 0.1); color: #92400e; }
-
-      .table {
-        color: var(--text-primary);
-        margin-bottom: 0;
+      .badge-status.scheduled {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
       }
 
-      .table thead th {
-        background: #f8fafc;
-        color: var(--text-muted);
-        font-size: 0.75rem;
+      .badge-status.completed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-status.cancelled {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .badge-status.pending {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .premium-table {
+        width: 100%;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        border-collapse: collapse;
+      }
+
+      .premium-table thead th {
+        background: rgba(15, 23, 42, 0.6);
+        color: #94a3b8;
+        font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         font-weight: 600;
         padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         white-space: nowrap;
+        position: sticky;
+        top: 0;
       }
 
-      .table tbody td {
+      .premium-table tbody td {
         padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         vertical-align: middle;
       }
 
-      .table tbody tr:hover { background: rgba(148, 163, 184, 0.04); }
-      .table tbody tr:last-child td { border-bottom: none; }
-
-      .empty-state {
-        text-align: center;
-        padding: 2rem 1rem;
-        color: var(--text-muted);
-        font-size: 0.9rem;
+      .premium-table tbody tr {
+        transition: all 0.15s ease;
       }
 
-      .btn-back {
-        background: rgba(13, 148, 136, 0.1);
-        color: var(--accent-teal);
-        border: 1px solid rgba(13, 148, 136, 0.2);
-        border-radius: 6px;
-        padding: 0.4rem 0.85rem;
+      .premium-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .premium-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
         font-size: 0.85rem;
-        font-weight: 500;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
         text-decoration: none;
       }
 
+      .btn-icon:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-icon.complete {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-icon.complete:hover {
+        background: rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-icon.approve {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-icon.approve:hover {
+        background: rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-icon.reject {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-icon.reject:hover {
+        background: rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-back {
+        background: rgba(13, 148, 136, 0.15);
+        color: #5eead4;
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
       .btn-back:hover {
-        background: rgba(13, 148, 136, 0.2);
-        color: var(--accent-teal);
+        background: rgba(13, 148, 136, 0.3);
+        color: #2dd4bf;
+        transform: translateY(-1px);
       }
 
-      .filter-form .form-control, .filter-form .form-select {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.75rem;
+      .btn-go {
+        background: var(--accent-teal);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
       }
 
-      .filter-form .btn {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.85rem;
+      .btn-go:hover {
+        background: #0f766e;
+        color: #fff;
+        transform: translateY(-1px);
       }
 
-      .filter-row {
+      .btn-reset {
+        background: rgba(100, 116, 139, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-reset:hover {
+        background: rgba(100, 116, 139, 0.25);
+        color: #f1f5f9;
+        transform: translateY(-1px);
+      }
+
+      .btn-notes {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        border-radius: 8px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .btn-notes:hover {
+        background: rgba(37, 99, 235, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .btn-rejection {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .btn-rejection:hover {
+        background: rgba(239, 68, 68, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+
+      .empty-state-icon {
+        font-size: 3.5rem;
         margin-bottom: 1rem;
+        opacity: 0.9;
       }
 
-      .notes-badge {
-        background: rgba(37, 99, 235, 0.1);
-        color: var(--accent-blue);
-        border: none;
+      .empty-state h5 {
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
       }
 
-      .rejection-badge {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--accent-rose);
-        border: none;
+      .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
       }
 
       .modal-content {
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
       }
 
       .modal-header {
-        background: var(--bg-primary);
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: #f8fafc;
+      }
+
+      .modal-title {
+        color: #f8fafc;
+        font-weight: 600;
+      }
+
+      .modal-body {
+        color: #cbd5e1;
+      }
+
+      .btn-close {
+        filter: invert(1);
       }
 
       .modal-footer {
-        background: var(--bg-primary);
-        border-top: 1px solid var(--border-color);
+        padding: 1rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
       }
-
-      .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-      .card { background: rgba(255, 255, 255, 0.95); }
     </style>
   </head>
   <body>
@@ -268,18 +506,16 @@
 
     <main class="main-content">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Scheduled Appointments</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">Your upcoming and past appointments</p>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Scheduled Appointments</p>
           </div>
-          <a href="{{ url_for('counselor_dashboard') }}" class="btn-back">
-            &#x21A9; Back to Dashboard
-          </a>
+          <a href="{{ url_for('counselor_dashboard') }}" class="btn-back">Back to Dashboard</a>
         </div>
 
-        <form method="GET" class="filter-form mb-3">
-          <div class="row g-2 filter-row">
+        <div class="filter-card">
+          <form method="GET" class="row g-3">
             <div class="col-md-5">
               <input type="text" name="search" class="form-control" placeholder="Search student name..." value="{{ filters.search or '' }}">
             </div>
@@ -292,27 +528,27 @@
                 <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
               </select>
             </div>
-            <div class="col-md-1">
-              <button type="submit" class="btn btn-sm w-100" style="background: var(--accent-teal); color: white;">Go</button>
+            <div class="col-md-2">
+              <button type="submit" class="btn-go w-100">Apply Filters</button>
             </div>
-          </div>
+          </form>
           {% if filters.search or filters.status != 'all' %}
-          <div class="row">
+          <div class="row mt-3">
             <div class="col-12">
-              <a href="{{ url_for('counselor_appointments') }}" class="btn btn-outline-secondary btn-sm">Reset Filters</a>
+              <a href="{{ url_for('counselor_appointments') }}" class="btn-reset">Clear Filters</a>
             </div>
           </div>
           {% endif %}
-        </form>
+        </div>
 
-        <div class="main-card">
+        <div class="glass-card">
           <div class="card-header">
             <span class="header-icon appointments">&#x1F4C5;</span>
             <h5>All Appointments</h5>
           </div>
           {% if appointments %}
           <div class="table-responsive">
-            <table class="table">
+            <table class="premium-table">
               <thead>
                 <tr>
                   <th>Student</th>
@@ -326,68 +562,44 @@
               <tbody>
                 {% for appt in appointments %}
                 <tr>
-                  <td style="font-weight: 600;">{{ appt[1] }}</td>
-                  <td>{{ appt[2].strftime('%m/%d/%Y %H:%M') if appt[2] else 'N/A' }}</td>
-                  <td>{{ appt[3] or 'N/A' }}</td>
+                  <td style="font-weight: 600; color: #f8fafc;">{{ appt[1] }}</td>
+                  <td style="color: #cbd5e1;">{{ appt[2].strftime('%m/%d/%Y %H:%M') if appt[2] else 'N/A' }}</td>
+                  <td style="color: #cbd5e1;">{{ appt[3] or 'N/A' }}</td>
                   <td>
                     <span class="badge-status {{ appt[4]|lower|replace(' ', '_') }}">
                       {{ appt[4] or 'N/A' }}
                     </span>
                   </td>
                   <td>
-                    {% if appt[4] == 'completed' and appt[5] %}
-                      <button class="btn btn-sm notes-badge" data-bs-toggle="modal" data-bs-target="#notesModal-{{ appt[0] }}">
-                        View Notes
-                      </button>
-                      <div class="modal fade" id="notesModal-{{ appt[0] }}" tabindex="-1">
-                        <div class="modal-dialog">
-                          <div class="modal-content">
-                            <div class="modal-header">
-                              <h5 class="modal-title">Session Notes</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                              <p>{{ appt[5] }}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    {% elif appt[4] == 'cancelled' and appt[6] %}
-                      <button class="btn btn-sm rejection-badge" data-bs-toggle="modal" data-bs-target="#rejectionModal-{{ appt[0] }}">
-                        View Reason
-                      </button>
-                      <div class="modal fade" id="rejectionModal-{{ appt[0] }}" tabindex="-1">
-                        <div class="modal-dialog">
-                          <div class="modal-content">
-                            <div class="modal-header">
-                              <h5 class="modal-title">Rejection Reason</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                              <p>{{ appt[6] }}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    {% elif appt[4] == 'completed' %}
-                      <span style="color: var(--text-muted);">No notes</span>
+                     {% if appt[4] == 'completed' and appt[5] %}
+                       <button type="button" class="btn-notes" data-bs-toggle="modal" data-bs-target="#notesModal-{{ appt[0] }}">
+                         View Notes
+                       </button>
+                     {% endif %}
+                     {% if appt[4] == 'cancelled' and appt[6] %}
+                        <button type="button" class="btn-rejection" data-bs-toggle="modal" data-bs-target="#rejectionModal-{{ appt[0] }}">
+                          View Reason
+                        </button>
+                     {% endif %}
+                     {% if appt[4] == 'completed' %}
+                      <span style="color: #64748b;">No notes</span>
                     {% elif appt[5] %}
-                      <span style="color: var(--text-muted);">Has notes</span>
+                      <span style="color: #64748b;">Has notes</span>
                     {% else %}
-                      <span style="color: var(--text-muted);">-</span>
+                      <span style="color: #64748b;">-</span>
                     {% endif %}
                   </td>
                   <td style="text-align: center;">
                     {% if appt[4] == 'scheduled' %}
                     <form action="{{ url_for('counselor_complete_appointment', appointment_id=appt[0]) }}" method="POST" class="d-inline" onsubmit="return confirmComplete(this);">
-                      <button type="submit" class="btn btn-primary btn-sm py-0 px-2">Complete</button>
+                      <button type="submit" class="btn-icon complete" title="Complete">&#x2713;</button>
                     </form>
                     {% elif appt[4] == 'pending' %}
                     <form action="{{ url_for('counselor_approve_appointment', appointment_id=appt[0]) }}" method="POST" class="d-inline">
-                      <button type="submit" class="btn btn-success btn-sm py-0 px-2">Approve</button>
+                      <button type="submit" class="btn-icon approve" title="Approve">&#x2713;</button>
                     </form>
-                    <form action="{{ url_for('counselor_reject_appointment', appointment_id=appt[0]) }}" method="POST" class="d-inline ms-1" onsubmit="return confirmReject(this);">
-                      <button type="submit" class="btn btn-danger btn-sm py-0 px-2">Reject</button>
+                    <form action="{{ url_for('counselor_reject_appointment', appointment_id=appt[0]) }}" method="POST" class="d-inline" onsubmit="return confirmReject(this);">
+                      <button type="submit" class="btn-icon reject ms-1" title="Reject">&#x2717;</button>
                     </form>
                     {% endif %}
                   </td>
@@ -397,7 +609,11 @@
             </table>
           </div>
           {% else %}
-          <div class="empty-state py-4">No appointments found matching your criteria</div>
+          <div class="empty-state">
+            <div class="empty-state-icon">&#x1F4C5;</div>
+            <h5>No Appointments Found</h5>
+            <p>No appointments match your current filters</p>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -428,5 +644,41 @@
         return confirm('Reject this appointment?');
       }
     </script>
+    {% for appt in appointments %}
+    <div class="modal fade" id="notesModal-{{ appt[0] }}" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Session Notes</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>{{ appt[5] }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-back" data-bs-dismiss="modal">Back</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% if appt[4] == 'cancelled' and appt[6] %}
+    <div class="modal fade" id="rejectionModal-{{ appt[0] }}" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Rejection Reason</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>{{ appt[6] }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-back" data-bs-dismiss="modal">Back</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
   </body>
 </html>

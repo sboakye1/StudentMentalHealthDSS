@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Transfer Counselor - Student Mental Health DSS</title>
+    <title>Transfer Counselor - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -25,7 +25,7 @@
 
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 3.JPG') }}") center/cover no-repeat fixed;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 11.webp') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         min-height: 100vh;
         margin: 0;
@@ -35,7 +35,7 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -95,7 +95,7 @@
       }
 
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -113,53 +113,38 @@
         }
       }
 
-      .form-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 2rem;
-        max-width: 640px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      .page-header {
+        padding: 2rem 0 1rem;
       }
 
-      .form-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-secondary);
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: #ffffff;
       }
 
-      .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        padding: 0.6rem 0.85rem;
+      .page-header .subtitle {
+        color: #ffffff;
         font-size: 0.95rem;
+        margin-bottom: 0;
       }
 
-      .form-control:focus, .form-select:focus {
-        border-color: var(--accent-blue);
-        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
       }
 
-      .form-control:disabled {
-        background: #f1f5f9;
-        color: var(--text-muted);
-      }
-
-      .btn-primary {
-        background: var(--accent-blue);
-        border: none;
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
-        font-weight: 600;
-      }
-
-      .btn-primary:hover {
-        background: #1d4ed8;
-      }
-
-      .btn-outline-secondary {
-        border-radius: 8px;
-        font-weight: 500;
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
       }
 
       .transfer-flow {
@@ -167,18 +152,137 @@
         align-items: center;
         gap: 1rem;
         margin: 1.5rem 0;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
+        padding: 1.25rem;
+        background: rgba(15, 23, 42, 0.6);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .transfer-arrow {
         font-size: 1.5rem;
         color: var(--accent-blue);
       }
+
+      .form-label {
+        color: #e2e8f0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control,
+      .form-select {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+        border-radius: 10px;
+        padding: 0.7rem 0.9rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+      }
+
+      .form-control::placeholder {
+        color: #64748b;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
+        color: #f1f5f9;
+      }
+
+      .form-select option {
+        background: #1e293b;
+        color: #f1f5f9;
+      }
+
+      .btn-primary-custom {
+        background: var(--accent-blue);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.75rem 1.75rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+      }
+
+      .btn-primary-custom:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+      }
+
+      .btn-back {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.25);
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-back:hover {
+        background: rgba(37, 99, 235, 0.25);
+        color: #93c5fd;
+        transform: translateY(-1px);
+      }
+
+      .btn-cancel {
+        background: rgba(100, 116, 139, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 10px;
+        padding: 0.75rem 1.75rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-cancel:hover {
+        background: rgba(100, 116, 139, 0.25);
+        color: #f1f5f9;
+        transform: translateY(-2px);
+      }
+
+      .alert {
+        border-radius: 10px;
+        border: none;
+      }
+
+      .alert-danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .alert-success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
       .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-      .card { background: rgba(255, 255, 255, 0.95); }
+      .card { background: rgba(255, 255, 255, 0.92); }
     </style>
   </head>
   <body>
@@ -186,27 +290,15 @@
 
     <main class="main-content">
       <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}" role="alert" style="margin-top: 1rem;">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Transfer Counselor</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">
-              Student: {{ student[1] }} ({{ student[2] }})
-            </p>
+            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: #ffffff;">Welcome to MindCare</h1>
+            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: #ffffff;">Transfer Counselor</p>
           </div>
-          <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
-            &#x2190; Back to Reports
-          </a>
+          <a href="{{ url_for('admin_reports') }}" class="btn btn-back">&#x2190; Reports</a>
         </div>
 
-        <div class="form-card">
+        <div class="glass-card">
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
               {% for category, message in messages %}
@@ -218,12 +310,12 @@
           <div class="transfer-flow">
             <div class="text-center">
               <div class="form-label">Current Counselor</div>
-              <div style="font-weight: 600; font-size: 1.1rem;">{{ current_counselor_name or 'Unassigned' }}</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #f8fafc;">{{ current_counselor_name or 'Unassigned' }}</div>
             </div>
             <div class="transfer-arrow">&#x2193;</div>
             <div class="text-center">
               <div class="form-label">New Counselor</div>
-              <div style="font-weight: 600; font-size: 1.1rem; color: var(--accent-blue);">Select below</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #60a5fa;">Select below</div>
             </div>
           </div>
 
@@ -242,8 +334,8 @@
               <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Enter reason for transfer..."></textarea>
             </div>
             <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary">Transfer</button>
-              <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary-custom">Transfer</button>
+              <a href="{{ url_for('admin_reports') }}" class="btn btn-cancel">Cancel</a>
             </div>
           </form>
         </div>

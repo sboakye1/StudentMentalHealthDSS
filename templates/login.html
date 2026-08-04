@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - Student Mental Health DSS</title>
+    <title>Login - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,32 +17,32 @@
       * { box-sizing: border-box; }
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Home page.JPG') }}") center/cover no-repeat fixed;
+         background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url("{{ url_for('static', filename='images/homopage 1.jpg') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         margin: 0;
         min-height: 100vh;
       }
       .navbar {
-        background: rgba(255,255,255,0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid #e2e8f0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(255,255,255,0.12);
         padding: 0.75rem 0;
       }
       .navbar-brand {
         font-weight: 700;
-        color: var(--accent-blue) !important;
+        color: #ffffff !important;
         font-size: 1.1rem;
       }
       .nav-link {
-        color: var(--text-secondary) !important;
+        color: #cbd5e1 !important;
         font-weight: 500;
         font-size: 0.9rem;
         transition: all 0.2s ease;
         padding: 0.4rem 0.75rem;
         border-radius: 8px;
       }
-      .nav-link:hover { color: var(--accent-blue) !important; background: rgba(37,99,235,0.08); }
+      .nav-link:hover { color: #ffffff !important; background: rgba(255,255,255,0.08); }
       .login-wrapper {
         min-height: calc(100vh - 60px);
         display: flex;
@@ -50,43 +50,51 @@
         justify-content: center;
         padding: 2rem 1rem;
       }
-      .login-logo { height: 64px; width: auto; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; }
-      .login-card { background: rgba(255, 255, 255, 0.95); }
+      .navbar-logo { height: 36px; width: auto; margin-right: 0.5rem; }
+      .login-logo { height: 36px; width: auto; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; }
       .login-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.25);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 18px;
         padding: 2rem;
         width: 100%;
         max-width: 420px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.35);
       }
       .login-card h1 {
         font-weight: 700;
         font-size: 1.5rem;
         margin-bottom: 0.25rem;
         text-align: center;
+        color: #ffffff;
       }
       .login-card .subtitle {
         text-align: center;
-        color: var(--text-secondary);
+        color: #94a3b8;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
       }
       .form-label {
         font-size: 0.85rem;
         font-weight: 600;
-        color: var(--text-secondary);
+        color: #cbd5e1;
       }
       .form-control {
         border-radius: 10px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(15, 23, 42, 0.25);
+        color: #f1f5f9;
         padding: 0.6rem 0.85rem;
         font-size: 0.95rem;
       }
+      .form-control::placeholder { color: #64748b; }
       .form-control:focus {
         border-color: var(--accent-blue);
-        box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.15);
+        box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.25);
+        background: rgba(15, 23, 42, 0.45);
+        color: #f1f5f9;
       }
       .btn-login {
         background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
@@ -101,23 +109,39 @@
       .btn-login:hover {
         color: #fff;
         transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+        box-shadow: 0 6px 16px rgba(37,99,235,0.35);
       }
       .login-footer {
         text-align: center;
         margin-top: 1.25rem;
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: #94a3b8;
       }
-      .login-footer a { color: var(--accent-blue); font-weight: 600; text-decoration: none; }
-      .login-footer a:hover { text-decoration: underline; }
+      .login-footer a { color: #60a5fa; font-weight: 600; text-decoration: none; }
+      .login-footer a:hover { color: #93c5fd; text-decoration: underline; }
+      .alert {
+        border-radius: 10px;
+        border: none;
+        font-size: 0.9rem;
+      }
+      .alert-danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .alert-success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
     </style>
   </head>
   <body>
     <nav class="navbar">
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('home') }}">
-          <span style="margin-right:0.5rem;">&#x1F3E5;</span> Mental Health DSS
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="navbar-logo">
+          MindCare
         </a>
         <div class="navbar-nav ms-auto">
           <a class="nav-link" href="{{ url_for('home') }}">Home</a>
@@ -127,9 +151,10 @@
 
     <div class="login-wrapper">
       <div class="login-card">
-        <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="login-logo">
-        <h1>Welcome back</h1>
-        <p class="subtitle">Log in to access your mental wellness portal.</p>
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🧠</div>
+        <h1>MindCare</h1>
+        <p class="subtitle">Supporting Student Mental Wellness</p>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">Sign in to continue</p>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
@@ -143,17 +168,17 @@
         <form method="POST" action="{{ url_for('login') }}">
           <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email" required autofocus>
+            <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="Enter your email">
           </div>
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
+            <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
           </div>
           <button type="submit" class="btn btn-login">Login</button>
         </form>
         <div class="login-footer">
           <p class="mb-1">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
-          <a href="{{ url_for('home') }}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">Back to Home</a>
+          <a href="{{ url_for('home') }}" style="color: #94a3b8; text-decoration: none; font-weight: 500;">Back to Home</a>
         </div>
       </div>
     </div>

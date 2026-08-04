@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Critical Cases - Admin Portal - Student Mental Health DSS</title>
+    <title>Critical Cases - Admin Portal - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -25,7 +25,7 @@
 
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 3.JPG') }}") center/cover no-repeat fixed;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 13.jpg') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         min-height: 100vh;
         margin: 0;
@@ -35,7 +35,7 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -95,7 +95,7 @@
       }
 
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -113,66 +113,149 @@
         }
       }
 
-      .header-section {
+      .page-header {
         padding: 2rem 0 1rem;
       }
 
-      .header-section h1 {
+      .page-header h1 {
         font-weight: 700;
         font-size: 1.75rem;
         margin-bottom: 0.25rem;
-        color: var(--text-primary);
+        color: #ffffff;
       }
 
-      .header-section .subtitle {
-        color: var(--text-secondary);
+      .page-header .subtitle {
+        color: #ffffff;
         font-size: 0.95rem;
         margin-bottom: 0;
       }
 
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .summary-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.25rem;
+        height: 100%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .summary-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .summary-card .label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .summary-card .value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #f8fafc;
+      }
+
+      .summary-card .subtext {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+      }
+
       .filter-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         padding: 1.25rem;
         margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
       }
 
-      .form-label {
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        margin-bottom: 0.4rem;
+      .filter-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
       }
 
-      .form-control, .form-select {
-        background: #fff;
-        border: 1px solid var(--border-color);
-        color: var(--text-primary);
-        border-radius: 8px;
-        padding: 0.4rem 0.75rem;
+      .filter-card .form-control,
+      .filter-card .form-select {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+        border-radius: 10px;
+        padding: 0.6rem 0.85rem;
         font-size: 0.85rem;
+        transition: all 0.2s ease;
       }
 
-      .form-control:focus, .form-select:focus {
+      .filter-card .form-control::placeholder {
+        color: #64748b;
+      }
+
+      .filter-card .form-control:focus,
+      .filter-card .form-select:focus {
+        background: rgba(15, 23, 42, 0.8);
         border-color: var(--accent-blue);
-        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
+        color: #f1f5f9;
+      }
+
+      .filter-card .form-select option {
+        background: #1e293b;
+        color: #f1f5f9;
       }
 
       .table-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 0;
         margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        transition: all 0.25s ease;
+      }
+
+      .table-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
       }
 
       .table-card .card-header {
-        padding: 0 0 1rem 0;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -182,38 +265,66 @@
         font-weight: 600;
         font-size: 1rem;
         margin: 0;
-        color: var(--text-primary);
+        color: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
-      .table {
-        color: var(--text-primary);
+      .table-card .card-header .count-badge {
+        background: rgba(71, 85, 105, 0.3);
+        color: #94a3b8;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+      }
+
+      .premium-table {
+        color: #e2e8f0;
         margin-bottom: 0;
         font-size: 0.9rem;
+        background: transparent;
       }
 
-      .table thead th {
-        background: #f8fafc;
-        color: var(--text-secondary);
+      .premium-table thead th {
+        background: rgba(15, 23, 42, 0.6);
+        color: #94a3b8;
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         font-weight: 600;
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--border-color);
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         white-space: nowrap;
       }
 
-      .table tbody td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--border-color);
+      .premium-table tbody td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         font-size: 0.9rem;
         vertical-align: middle;
+        color: #cbd5e1;
+        background: transparent;
       }
 
-      .table tbody tr:hover { background: rgba(37, 99, 235, 0.03); }
-      .table tbody tr:last-child td { border-bottom: none; }
+      .premium-table tbody tr {
+        background: transparent;
+        transition: all 0.2s ease;
+      }
+
+      .premium-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .premium-table tbody tr:last-child td {
+        border-bottom: none;
+      }
 
       .badge-risk {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -222,12 +333,34 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-risk.high { background: #fee2e2; color: #991b1b; }
-      .badge-risk.medium { background: #fef3c7; color: #92400e; }
-      .badge-risk.low { background: #dcfce7; color: #15803d; }
-      .badge-risk.critical { background: #fee2e2; color: #991b1b; }
+      .badge-risk.high {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-risk.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .badge-risk.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-risk.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
 
       .badge-priority {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -236,15 +369,113 @@
         letter-spacing: 0.04em;
       }
 
-      .badge-priority.critical { background: #fee2e2; color: #991b1b; }
-      .badge-priority.low { background: #dcfce7; color: #15803d; }
-      .badge-priority.medium { background: #fef3c7; color: #92400e; }
+      .badge-priority.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .badge-priority.low {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .badge-priority.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
 
       .empty-state {
         text-align: center;
-        padding: 2rem;
-        color: var(--text-muted);
+        padding: 3rem 1rem;
+        color: #64748b;
         font-size: 0.9rem;
+      }
+
+      .empty-state-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+      }
+
+      .empty-state h5 {
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+      }
+
+      .btn-primary-custom {
+        background: var(--accent-blue);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.75rem 1.75rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+      }
+
+      .btn-primary-custom:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+      }
+
+      .btn-outline-custom {
+        background: rgba(100, 116, 139, 0.1);
+        color: #cbd5e1;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-outline-custom:hover {
+        background: rgba(100, 116, 139, 0.2);
+        color: #f1f5f9;
+        transform: translateY(-1px);
+      }
+
+      .action-btn {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        border-radius: 8px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+        transition: all 0.2s ease;
+      }
+
+      .action-btn:hover {
+        background: rgba(37, 99, 235, 0.3);
+        color: #93c5fd;
+        transform: translateY(-1px);
       }
 
       .header-icon {
@@ -257,34 +488,25 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.critical { background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); }
-
-      .count-badge {
-        background: rgba(71, 85, 105, 0.1);
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        padding: 0.2rem 0.6rem;
-         border-radius: 20px;
-         margin-left: 0.5rem;
-       }
-       .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-       .card { background: rgba(255, 255, 255, 0.95); }
-     </style>
+      .header-icon.critical { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+      .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
+      .card { background: rgba(255, 255, 255, 0.92); }
+    </style>
   </head>
   <body>
         {% include 'sidebar_admin.html' %}
 
     <main class="main-content">
       <div class="container">
-        <div class="header-section d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h1>Critical Cases</h1>
-            <p class="subtitle">Students requiring immediate attention and intervention</p>
+            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: #ffffff;">Welcome to MindCare</h1>
+            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: #ffffff;">Critical Cases</p>
           </div>
         </div>
 
-        <form method="GET" class="filter-card">
-          <div class="row g-3">
+        <div class="filter-card">
+          <form method="GET" class="row g-3">
             <div class="col-md-3">
               <label class="form-label">Search Student</label>
               <input type="text" name="search" class="form-control" placeholder="Enter student name..." value="{{ filters.search }}">
@@ -316,19 +538,18 @@
               </select>
             </div>
             <div class="col-md-12 d-flex gap-2">
-              <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
-              <a href="{{ url_for('admin_critical_cases') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+              <button type="submit" class="btn btn-primary-custom">Apply Filters</button>
+              <a href="{{ url_for('admin_critical_cases') }}" class="btn btn-outline-custom">Clear</a>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
 
         <div class="table-card">
           <div class="card-header">
-            <span class="header-icon critical">&#x1F6A8;</span>
-            <h5>Critical Cases <span class="count-badge">{{ cases|length }} cases</span></h5>
+            <h5><span class="header-icon critical">&#x1F6A8;</span> Critical Cases <span class="count-badge">{{ cases|length }} cases</span></h5>
           </div>
           <div class="table-responsive">
-            <table class="table">
+            <table class="table premium-table">
               <thead>
                 <tr>
                   <th>Student Name</th>
@@ -342,11 +563,11 @@
               <tbody>
                 {% for c in cases %}
                 <tr>
-                  <td style="font-weight: 600;">{{ c.name }}</td>
-                  <td style="font-family: monospace; color: #64748b;">{{ c.student_id_number or 'N/A' }}</td>
-                  <td>{{ c.email or 'N/A' }}</td>
-                  <td><strong>{{ c.overall_score if c.overall_score else 'N/A' }}</strong></td>
-                  <td>{{ c.last_assessment_date.strftime('%Y-%m-%d') if c.last_assessment_date else 'N/A' }}</td>
+                  <td style="font-weight: 600; color: #f8fafc;">{{ c.name }}</td>
+                  <td style="font-family: monospace; color: #94a3b8;">{{ c.student_id_number or 'N/A' }}</td>
+                  <td style="color: #cbd5e1;">{{ c.email or 'N/A' }}</td>
+                  <td><strong style="color: #f8fafc;">{{ c.overall_score if c.overall_score else 'N/A' }}</strong></td>
+                  <td style="color: #cbd5e1;">{{ c.last_assessment_date.strftime('%Y-%m-%d') if c.last_assessment_date else 'N/A' }}</td>
                   <td>
                     <span class="badge-risk {{ c.risk_level|lower }}">{{ c.risk_level }}</span>
                   </td>
@@ -354,7 +575,13 @@
                 {% endfor %}
                 {% if not cases %}
                 <tr>
-                  <td colspan="6" class="empty-state">No critical cases found matching the selected filters.</td>
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">&#x1F6A8;</div>
+                      <h5>No critical cases found</h5>
+                      <p>No students match the selected filters. Try adjusting your search criteria.</p>
+                    </div>
+                  </td>
                 </tr>
                 {% endif %}
               </tbody>

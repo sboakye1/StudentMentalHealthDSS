@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard - Student Mental Health DSS</title>
+    <title>Admin Dashboard - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
 
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 3.JPG') }}") center/cover no-repeat fixed;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 11.webp') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         min-height: 100vh;
         margin: 0;
@@ -36,7 +36,7 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 240px;
+        width: 200px;
         height: 100vh;
         background: var(--bg-card);
         border-right: 1px solid var(--border-color);
@@ -96,7 +96,7 @@
       }
 
       .main-content {
-        margin-left: 240px;
+        margin-left: 200px;
         padding: 1.5rem 0;
       }
 
@@ -114,50 +114,49 @@
         }
       }
 
-      .header-section {
+      .page-header {
         padding: 2rem 0 1rem;
       }
 
-      .header-section h1 {
+      .page-header h1 {
         font-weight: 700;
         font-size: 1.75rem;
         margin-bottom: 0.25rem;
-        color: var(--text-primary);
+        color: #ffffff;
       }
 
-      .header-section .subtitle {
-        color: var(--text-secondary);
+      .page-header .subtitle {
+        color: #ffffff;
         font-size: 0.95rem;
         margin-bottom: 0;
       }
 
       .summary-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         padding: 1.25rem;
         height: 100%;
-        transition: all 0.2s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
 
       .summary-card:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
         transform: translateY(-2px);
       }
-
-      .summary-card.high { border-top: 3px solid var(--accent-rose); }
-      .summary-card.medium { border-top: 3px solid var(--accent-amber); }
-      .summary-card.low { border-top: 3px solid var(--accent-green); }
-      .summary-card.default { border-top: 3px solid var(--accent-blue); }
 
       .summary-card .label {
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: var(--text-muted);
+        color: #94a3b8;
         font-weight: 600;
         margin-bottom: 0.5rem;
       }
@@ -166,71 +165,96 @@
         font-size: 1.75rem;
         font-weight: 700;
         line-height: 1.2;
+        color: #f8fafc;
       }
 
-      .summary-card .value.high { color: var(--accent-rose); }
-      .summary-card .value.medium { color: var(--accent-amber); }
-      .summary-card .value.low { color: var(--accent-green); }
-      .summary-card .value.default { color: var(--text-primary); }
+      .summary-card .value.high { color: #fca5a5; }
+      .summary-card .value.medium { color: #fcd34d; }
+      .summary-card .value.low { color: #6ee7b7; }
+      .summary-card .value.default { color: #f8fafc; }
 
       .summary-card .subtext {
         font-size: 0.85rem;
-        color: var(--text-muted);
+        color: #64748b;
         margin-top: 0.25rem;
       }
 
-      .appt-stats-grid {
+      .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
         margin-bottom: 1.5rem;
       }
 
-      .appt-stat-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
-        text-align: center;
-        transition: all 0.2s ease;
+      @media (max-width: 991.98px) {
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
-      .appt-stat-card:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-        transform: translateY(-2px);
+      .stats-cell {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        transition: all 0.15s ease;
       }
 
-      .appt-stat-value {
-        font-size: 1.75rem;
+      .stats-cell:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .stats-cell:last-child {
+        border-bottom: none;
+      }
+
+      .stats-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .stats-value {
+        font-size: 1.1rem;
         font-weight: 700;
         line-height: 1.2;
+        color: #f8fafc;
       }
 
-      .appt-stat-value.high { color: var(--accent-rose); }
-      .appt-stat-value.medium { color: var(--accent-amber); }
-      .appt-stat-value.low { color: var(--accent-green); }
-      .appt-stat-value.default { color: var(--accent-blue); }
+      .stats-value.high { color: #fca5a5; }
+      .stats-value.medium { color: #fcd34d; }
+      .stats-value.low { color: #6ee7b7; }
+      .stats-value.default { color: #f8fafc; }
 
-      .appt-stat-label {
+      .stats-subtext {
         font-size: 0.8rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        margin-top: 0.25rem;
+        color: #64748b;
+        margin-top: 0.1rem;
       }
 
       .chart-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
         margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .chart-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
       }
 
       .chart-card h5 {
         font-weight: 600;
         font-size: 1rem;
         margin: 0 0 1rem 0;
-        color: var(--text-primary);
+        color: #f8fafc;
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -246,8 +270,8 @@
         font-size: 0.9rem;
       }
 
-      .header-icon.pie { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); }
-      .header-icon.bar { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
+      .header-icon.pie { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+      .header-icon.bar { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
 
       .chart-container {
         position: relative;
@@ -260,8 +284,9 @@
         max-width: 320px;
         margin: 0 auto;
       }
+
       .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
-      .summary-card, .chart-card, .appt-stat-card, .card { background: rgba(255, 255, 255, 0.95); }
+      .card { background: rgba(255, 255, 255, 0.92); }
     </style>
   </head>
   <body>
@@ -269,106 +294,102 @@
 
     <main class="main-content">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h1 class="mb-0" style="font-weight: 700; font-size: 1.75rem; color: var(--text-primary);">Admin Dashboard</h1>
-            <p class="text-secondary mb-0" style="font-size: 0.95rem; color: var(--text-secondary);">System analytics and decision support insights</p>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Admin Dashboard</p>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
-              &#x1F511; Logout
-            </a>
-          </div>
+          <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
         </div>
 
-        <div class="row g-3 mb-4">
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card default">
-              <div class="label">Total Students</div>
-              <div class="value default">{{ data.total_students }}</div>
-              <div class="subtext">Registered</div>
+        <div class="summary-card mb-4">
+          <div class="stats-grid">
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Total Students</div>
+                <div class="stats-value default">{{ data.total_students }}</div>
+                <div class="stats-subtext">Registered</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card high">
-              <div class="label">High Risk</div>
-              <div class="value high">{{ data.high_risk }}</div>
-              <div class="subtext">Needs attention</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Critical Cases</div>
+                <div class="stats-value high">{{ data.critical_cases }}</div>
+                <div class="stats-subtext">Priority</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card medium">
-              <div class="label">Medium Risk</div>
-              <div class="value medium">{{ data.medium_risk }}</div>
-              <div class="subtext">Monitor closely</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">High Risk</div>
+                <div class="stats-value high">{{ data.high_risk }}</div>
+                <div class="stats-subtext">Needs attention</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card low">
-              <div class="label">Low Risk</div>
-              <div class="value low">{{ data.low_risk }}</div>
-              <div class="subtext">Stable</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Interventions</div>
+                <div class="stats-value medium">{{ data.intervention_required }}</div>
+                <div class="stats-subtext">Required</div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card high">
-              <div class="label">Critical Cases</div>
-              <div class="value high">{{ data.critical_cases }}</div>
-              <div class="subtext">Priority</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Medium Risk</div>
+                <div class="stats-value medium">{{ data.medium_risk }}</div>
+                <div class="stats-subtext">Monitor closely</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card default">
-              <div class="label">Interventions</div>
-              <div class="value default">{{ data.intervention_required }}</div>
-              <div class="subtext">Required</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Total Surveys</div>
+                <div class="stats-value default">{{ data.total_surveys }}</div>
+                <div class="stats-subtext">Completed</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card default">
-              <div class="label">Total Surveys</div>
-              <div class="value default">{{ data.total_surveys }}</div>
-              <div class="subtext">Completed</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Low Risk</div>
+                <div class="stats-value low">{{ data.low_risk }}</div>
+                <div class="stats-subtext">Stable</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card default">
-              <div class="label">Anonymous Messages</div>
-              <div class="value default">{{ data.total_anonymous }}</div>
-              <div class="subtext">Total</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Community Posts</div>
+                <div class="stats-value default">{{ data.total_community_posts }}</div>
+                <div class="stats-subtext">Total</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card high">
-              <div class="label">New Anonymous</div>
-              <div class="value high">{{ data.new_anonymous }}</div>
-              <div class="subtext">Unread</div>
-            </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="summary-card high">
-              <div class="label">Urgent Anonymous</div>
-              <div class="value high">{{ data.urgent_anonymous }}</div>
-              <div class="subtext">Priority</div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Pinned Posts</div>
+                <div class="stats-value medium">{{ data.pinned_posts }}</div>
+                <div class="stats-subtext">Pinned</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="appt-stats-grid" id="appointment-stats">
-          <div class="appt-stat-card">
-            <div class="appt-stat-value default" id="stat-scheduled">-</div>
-            <div class="appt-stat-label">Scheduled</div>
-          </div>
-          <div class="appt-stat-card">
-            <div class="appt-stat-value low" id="stat-completed">-</div>
-            <div class="appt-stat-label">Completed</div>
-          </div>
-          <div class="appt-stat-card">
-            <div class="appt-stat-value high" id="stat-cancelled">-</div>
-            <div class="appt-stat-label">Cancelled</div>
+        <div class="summary-card mb-4">
+          <div class="stats-grid">
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Scheduled</div>
+                <div class="stats-value default" id="stat-scheduled" style="color: #60a5fa;">-</div>
+              </div>
+            </div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Completed</div>
+                <div class="stats-value low" id="stat-completed" style="color: #6ee7b7;">-</div>
+              </div>
+            </div>
+            <div>
+              <div class="stats-cell">
+                <div class="stats-label">Cancelled</div>
+                <div class="stats-value high" id="stat-cancelled" style="color: #fca5a5;">-</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -395,8 +416,8 @@
 
     <script>
       const chartDefaults = {
-        color: '#64748b',
-        borderColor: 'rgba(226, 232, 240, 0.8)',
+        color: '#94a3b8',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
       };
 
       Chart.defaults.color = chartDefaults.color;
@@ -440,6 +461,7 @@
                       padding: 20,
                       usePointStyle: true,
                       pointStyle: 'circle',
+                      color: '#94a3b8',
                       font: { size: 12, weight: '500' }
                     }
                   }
@@ -488,13 +510,14 @@
                     beginAtZero: true,
                     ticks: {
                       stepSize: 1,
-                      font: { size: 11 }
+                      font: { size: 11 },
+                      color: '#94a3b8'
                     },
-                    grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' }
                   },
                   x: {
                     grid: { display: false },
-                    ticks: { font: { size: 11 } }
+                    ticks: { font: { size: 11 }, color: '#94a3b8' }
                   }
                 },
                 animation: {

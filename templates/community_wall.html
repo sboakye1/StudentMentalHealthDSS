@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Community Wall - MindCare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --accent-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-rose: #ef4444;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 15.webp') }}") center/cover no-repeat fixed;
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px;
+        height: 100vh;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 1rem;
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .sidebar-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--accent-blue);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 2rem;
+        padding-left: 0.5rem;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .sidebar-nav .nav-item {
+        margin-bottom: 0.25rem;
+      }
+
+      .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-nav .nav-link:hover {
+        background: rgba(37, 99, 235, 0.05);
+        color: var(--accent-blue);
+      }
+
+      .sidebar-nav .nav-link.active {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent-blue);
+        font-weight: 600;
+      }
+
+      .sidebar-nav .nav-icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .main-content {
+        margin-left: 200px;
+        padding: 1.5rem 0;
+      }
+
+      @media (max-width: 991.98px) {
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+          border-right: none;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+      }
+
+      .page-header {
+        padding: 2rem 0 1rem;
+      }
+
+      .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+        color: #ffffff;
+      }
+
+      .page-header .subtitle {
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .btn-primary-custom {
+        background: var(--accent-blue);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.6rem 1.5rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+      }
+
+      .btn-primary-custom:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+      }
+
+      .btn-back {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.25);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-back:hover {
+        background: rgba(37, 99, 235, 0.25);
+        color: #93c5fd;
+      }
+
+      .filter-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .filter-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .filter-card .form-control,
+      .filter-card .form-select {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+        border-radius: 10px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .filter-card .form-control::placeholder {
+        color: #64748b;
+      }
+
+      .filter-card .form-control:focus,
+      .filter-card .form-select:focus {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
+        color: #f1f5f9;
+      }
+
+      .filter-card .form-select option {
+        background: #1e293b;
+        color: #f1f5f9;
+      }
+
+      .post-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+
+      .post-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+
+      .post-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+      }
+
+      .post-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .post-author-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: rgba(37, 99, 235, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        border-radius: 20px;
+        padding: 0.3rem 0.85rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .post-date {
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+
+      .post-category {
+        display: inline-block;
+        padding: 0.3rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.75rem;
+      }
+
+      .post-category.academic-stress { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+      .post-category.anxiety { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+      .post-category.depression { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.3); }
+      .post-category.relationships { background: rgba(236, 72, 153, 0.2); color: #f9a8d4; border: 1px solid rgba(236, 72, 153, 0.3); }
+      .post-category.family { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+      .post-category.financial-issues { background: rgba(180, 83, 9, 0.2); color: #fbbf24; border: 1px solid rgba(180, 83, 9, 0.3); }
+      .post-category.motivation { background: rgba(37, 99, 235, 0.2); color: #93c5fd; border: 1px solid rgba(37, 99, 235, 0.3); }
+      .post-category.general-advice { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(124, 58, 237, 0.3); }
+      .post-category.success-story { background: rgba(4, 120, 87, 0.2); color: #6ee7b7; border: 1px solid rgba(4, 120, 87, 0.3); }
+      .post-category.other { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.3); }
+
+      .post-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+      }
+
+      .post-content {
+        color: #cbd5e1;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+      }
+
+      .post-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .reaction-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .reaction-btn:hover {
+        background: rgba(37, 99, 235, 0.2);
+        border-color: var(--accent-blue);
+        color: #60a5fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      }
+
+      .reaction-btn.active {
+        background: rgba(37, 99, 235, 0.25);
+        border-color: var(--accent-blue);
+        color: #60a5fa;
+      }
+
+      .btn-toggle-comments {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .btn-toggle-comments:hover {
+        background: rgba(37, 99, 235, 0.2);
+        border-color: var(--accent-blue);
+        color: #60a5fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      }
+
+      .comment-section.hidden {
+        display: none;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-pinned {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .moderation-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .btn-mod {
+        padding: 0.4rem 0.85rem;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: all 0.2s ease;
+        font-weight: 500;
+      }
+
+      .btn-pin {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .btn-pin:hover {
+        background: rgba(245, 158, 11, 0.35);
+        transform: translateY(-1px);
+      }
+
+      .btn-delete {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-delete:hover {
+        background: rgba(239, 68, 68, 0.35);
+        transform: translateY(-1px);
+      }
+
+      .comment-section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .comment-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 0.85rem;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s ease;
+      }
+
+      .comment-card:hover {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .comment-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.35rem;
+      }
+
+      .comment-author {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #60a5fa;
+      }
+
+      .comment-text {
+        font-size: 0.9rem;
+        color: #cbd5e1;
+        margin-bottom: 0.35rem;
+        line-height: 1.6;
+      }
+
+      .comment-date {
+        font-size: 0.75rem;
+        color: #64748b;
+      }
+
+      .comment-form {
+        display: flex;
+        gap: 0.6rem;
+        margin-top: 0.85rem;
+      }
+
+      .comment-form input {
+        flex: 1;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #f1f5f9 !important;
+        border-radius: 10px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.85rem;
+      }
+
+      .comment-form input::placeholder {
+        color: #64748b;
+      }
+
+      .comment-form input:focus {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border-color: var(--accent-blue) !important;
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25) !important;
+        color: #f1f5f9 !important;
+      }
+
+      .btn-comment {
+        background: var(--accent-blue);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .btn-comment:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+      }
+
+      .empty-state-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+      }
+
+      .empty-state h5 {
+        font-weight: 600;
+        color: #f8fafc;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+      }
+
+      .section-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #e2e8f0;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .sidebar-logo { height: 32px; width: auto; margin-right: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    {% if session.get('user_role') == 'student' %}
+        {% include 'sidebar_student.html' %}
+    {% elif session.get('user_role') == 'counselor' %}
+        {% include 'sidebar_counselor.html' %}
+    {% elif session.get('user_role') == 'admin' %}
+        {% include 'sidebar_admin.html' %}
+    {% endif %}
+
+    <main class="main-content">
+      <div class="container">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h1 class="mb-0">Welcome to MindCare</h1>
+            <p class="subtitle mb-0">Community Wall</p>
+          </div>
+          <a href="{{ url_for('community_wall_create') }}" class="btn-primary-custom">Create New Post</a>
+        </div>
+
+        <div class="filter-card">
+          <form method="GET" action="{{ url_for('community_wall') }}" class="row g-3">
+            <div class="col-md-4">
+              <input type="text" class="form-control" name="search" placeholder="Search posts..." value="{{ filters.search }}">
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" name="category">
+                <option value="all" {% if filters.category == 'all' %}selected{% endif %}>All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if filters.category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" name="sort">
+                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="most_liked" {% if filters.sort == 'most_liked' %}selected{% endif %}>Most Liked</option>
+                <option value="most_supported" {% if filters.sort == 'most_supported' %}selected{% endif %}>Most Supported</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn-primary-custom w-100">Filter</button>
+            </div>
+          </form>
+        </div>
+
+        {% if posts %}
+          {% for post in posts %}
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-meta">
+                <span class="post-author-badge">Anonymous</span>
+                <span class="post-date">{{ post[10].strftime('%B %d, %Y') if post[10] else '' }}</span>
+                {% if post[9] %}
+                <span class="badge badge-pinned">Pinned</span>
+                {% endif %}
+              </div>
+            </div>
+            {% if post[1] %}
+            <div class="post-title">{{ post[1] }}</div>
+            {% endif %}
+            <span class="post-category {{ post[2]|lower|replace(' ', '-') }}">{{ post[2] }}</span>
+            <div class="post-content">{{ post[3] }}</div>
+            <div class="post-actions">
+              <form action="{{ url_for('react_to_post', post_id=post[0]) }}" method="POST" class="d-inline">
+                <input type="hidden" name="type" value="like">
+                <button type="submit" class="reaction-btn {% if post[6] > 0 %}active{% endif %}">
+                  &#x1F44D; Like ({{ post[6] }})
+                </button>
+              </form>
+              <form action="{{ url_for('react_to_post', post_id=post[0]) }}" method="POST" class="d-inline">
+                <input type="hidden" name="type" value="support">
+                <button type="submit" class="reaction-btn {% if post[7] > 0 %}active{% endif %}">
+                  &#x2764;&#xFE0F; Support ({{ post[7] }})
+                </button>
+              </form>
+              <button type="button" class="btn-toggle-comments" onclick="toggleComments({{ post[0] }})">
+                &#x1F4AC; Comments ({{ post[8] }})
+              </button>
+              {% if is_moderator %}
+              <div class="moderation-actions">
+                {% if not post[9] %}
+                <form action="{{ url_for('pin_post', post_id=post[0]) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn-mod btn-pin">Pin</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('unpin_post', post_id=post[0]) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn-mod btn-pin">Unpin</button>
+                </form>
+                {% endif %}
+                <form action="{{ url_for('delete_post', post_id=post[0]) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this post permanently?');">
+                  <button type="submit" class="btn-mod btn-delete">Delete</button>
+                </form>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="comment-section hidden" id="comment-section-{{ post[0] }}">
+              <div class="section-title">&#x1F4AC; Comments</div>
+              <div id="comments-{{ post[0] }}">
+                {% for comment in post[11] %}
+                <div class="comment-card">
+                  <div class="comment-header">
+                    <span class="comment-author">Anonymous</span>
+                    <span class="comment-date">{{ comment.created_at }}</span>
+                  </div>
+                  <div class="comment-text">{{ comment.text }}</div>
+                  {% if is_moderator %}
+                  <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST" class="d-inline" style="margin-top: 0.5rem;">
+                    <button type="submit" class="btn-mod btn-delete" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">Delete</button>
+                  </form>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+              <form action="{{ url_for('add_comment', post_id=post[0]) }}" method="POST" class="comment-form">
+                <input type="text" class="form-control" name="comment" placeholder="Add a supportive comment..." required>
+                <button type="submit" class="btn btn-comment">Comment</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="post-card">
+            <div class="empty-state">
+              <div class="empty-state-icon">&#x1F4AC;</div>
+              <h5>No community posts yet.</h5>
+              <p>Be the first to share your experience.</p>
+              <a href="{{ url_for('community_wall_create') }}" class="btn btn-primary-custom">Create Post</a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function toggleComments(postId) {
+        var section = document.getElementById('comment-section-' + postId);
+        if (section) {
+          section.classList.toggle('hidden');
+        }
+      }
+
+      document.querySelectorAll('.comment-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var input = form.querySelector('input[name="comment"]');
+          var text = input.value.trim();
+          if (!text) return;
+          fetch(form.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(form)),
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+          }).then(function(r) {
+            if (r.ok) {
+              input.value = '';
+              location.reload();
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

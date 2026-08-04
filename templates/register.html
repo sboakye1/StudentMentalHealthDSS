@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Register - Student Mental Health DSS</title>
+    <title>Register - MindCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,30 +12,32 @@
         --text-primary: #0f172a;
         --text-secondary: #475569;
         --accent-blue: #2563eb;
+        --accent-teal: #0d9488;
         --accent-violet: #7c3aed;
       }
       * { box-sizing: border-box; }
       body {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("{{ url_for('static', filename='images/Background 4.JPG') }}") center/cover no-repeat fixed;
+        background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url("{{ url_for('static', filename='images/Background 12.webp') }}") center/cover no-repeat fixed;
         color: var(--text-primary);
         margin: 0;
         min-height: 100vh;
       }
+      .navbar-logo { height: 36px; width: auto; margin-right: 0.5rem; }
       .navbar {
-        background: rgba(255,255,255,0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid #e2e8f0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(255,255,255,0.12);
         padding: 0.75rem 0;
       }
       .navbar-brand {
         font-weight: 700;
-        color: var(--accent-blue) !important;
+        color: #ffffff !important;
         font-size: 1.1rem;
       }
       .nav-link {
-        color: var(--text-secondary) !important;
+        color: #cbd5e1 !important;
         font-weight: 500;
         font-size: 0.9rem;
         transition: all 0.2s ease;
@@ -43,7 +45,7 @@
         border-radius: 8px;
         text-decoration: none;
       }
-      .nav-link:hover { color: var(--accent-blue) !important; background: rgba(37,99,235,0.08); }
+      .nav-link:hover { color: #ffffff !important; background: rgba(255,255,255,0.08); }
       .register-wrapper {
         min-height: calc(100vh - 60px);
         display: flex;
@@ -51,43 +53,61 @@
         justify-content: center;
         padding: 2rem 1rem;
       }
-      .register-logo { height: 64px; width: auto; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; }
-      .register-card { background: rgba(255, 255, 255, 0.95); }
-      .register-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
+      .register-logo { height: 36px; width: auto; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto; }
+      .glass-card {
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.12);
         border-radius: 16px;
-        padding: 2rem;
+        padding: 1.5rem;
         width: 100%;
         max-width: 520px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+        transition: all 0.25s ease;
       }
-      .register-card h1 {
+      .glass-card:hover {
+        box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+        border-color: rgba(255,255,255,0.18);
+        transform: translateY(-2px);
+      }
+      .glass-card h1 {
         font-weight: 700;
         font-size: 1.5rem;
         margin-bottom: 0.25rem;
         text-align: center;
+        color: #ffffff;
       }
-      .register-card .subtitle {
+      .glass-card .subtitle {
         text-align: center;
-        color: var(--text-secondary);
+        color: #94a3b8;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
       }
       .form-label {
+        color: #cbd5e1;
+        font-weight: 500;
         font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
       }
       .form-control, .form-select {
         border-radius: 10px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(15, 23, 42, 0.55);
+        color: #f1f5f9;
         padding: 0.6rem 0.85rem;
         font-size: 0.95rem;
       }
+      .form-control::placeholder { color: #64748b; }
       .form-control:focus, .form-select:focus {
         border-color: var(--accent-blue);
-        box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.15);
+        box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.25);
+        background: rgba(15, 23, 42, 0.75);
+        color: #f1f5f9;
+      }
+      .form-select option {
+        background: #1e293b;
+        color: #f1f5f9;
       }
       .btn-register {
         background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
@@ -102,23 +122,45 @@
       .btn-register:hover {
         color: #fff;
         transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+        box-shadow: 0 6px 16px rgba(37,99,235,0.35);
       }
       .register-footer {
         text-align: center;
         margin-top: 1.25rem;
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: #94a3b8;
       }
-      .register-footer a { color: var(--accent-blue); font-weight: 600; text-decoration: none; }
-      .register-footer a:hover { text-decoration: underline; }
+      .register-footer a { color: #60a5fa; font-weight: 600; text-decoration: none; }
+      .register-footer a:hover { color: #93c5fd; text-decoration: underline; }
+      .alert {
+        border-radius: 10px;
+        border: none;
+        font-size: 0.9rem;
+      }
+      .alert-danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .alert-success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .footer {
+        text-align: center;
+        padding: 2rem 0;
+        color: #94a3b8;
+        font-size: 0.9rem;
+      }
     </style>
   </head>
   <body>
     <nav class="navbar">
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('home') }}">
-          <span style="margin-right:0.5rem;">&#x1F3E5;</span> Mental Health DSS
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="navbar-logo">
+          MindCare
         </a>
         <div class="navbar-nav ms-auto">
           <a class="nav-link" href="{{ url_for('home') }}">Home</a>
@@ -127,8 +169,8 @@
     </nav>
 
     <div class="register-wrapper">
-      <div class="register-card">
-        <img src="{{ url_for('static', filename='images/Logo.JPG') }}" alt="Logo" class="register-logo">
+      <div class="glass-card">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="register-logo">
         <h1>Create Account</h1>
         <p class="subtitle">Join the student mental wellness portal.</p>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -160,11 +202,11 @@
             <label for="confirm_password" class="form-label">Confirm Password</label>
             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
           </div>
-<div class="mb-3">
+          <div class="mb-3">
             <label for="student_id_number" class="form-label">Student ID Number</label>
             <input type="text" class="form-control" id="student_id_number" name="student_id_number" required value="{{ form.student_id_number if form else '' }}">
-           </div>
-           <div class="mb-3">
+          </div>
+          <div class="mb-3">
             <label for="year" class="form-label">Level</label>
             <select class="form-select" id="year" name="year">
               <option value="Level 100" {% if form and form.year == 'Level 100' %}selected{% endif %}>Level 100</option>
@@ -172,18 +214,25 @@
               <option value="Level 300" {% if form and form.year == 'Level 300' %}selected{% endif %}>Level 300</option>
               <option value="Level 400" {% if form and form.year == 'Level 400' %}selected{% endif %}>Level 400</option>
             </select>
-           </div>
-           <div class="mb-3">
+          </div>
+          <div class="mb-3">
             <label for="phone" class="form-label">Phone (optional)</label>
             <input type="tel" class="form-control" id="phone" name="phone" value="{{ form.phone if form else '' }}">
-           </div>
+          </div>
           <button type="submit" class="btn btn-register">Create Account</button>
         </form>
         <div class="register-footer">
           <p class="mb-1">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
-          <a href="{{ url_for('home') }}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">Back to Home</a>
+          <a href="{{ url_for('home') }}" style="color: #94a3b8; text-decoration: none; font-weight: 500;">Back to Home</a>
         </div>
       </div>
     </div>
+
+    <footer class="footer">
+      <div class="container">
+        &copy; 2026 MindCare<br>
+        <span style="font-size: 0.85rem; color: #64748b;">Supporting Student Mental Wellness</span>
+      </div>
+    </footer>
   </body>
 </html>

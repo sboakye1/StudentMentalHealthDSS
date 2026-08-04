@@ -297,9 +297,13 @@ def register_routes(app):
     @app.route("/", methods=["GET", "POST"])
     def home():
         if request.method == "POST":
+            if "user_id" not in session:
+                flash("Please log in to post to the Community Wall.", "danger")
+                return redirect(url_for("login"))
+
+            title = request.form.get("title", "").strip()
             category = request.form.get("category", "").strip()
             message = request.form.get("message", "").strip()
-            is_urgent = request.form.get("is_urgent") == "on"
 
             errors = []
             if not category:
@@ -310,26 +314,26 @@ def register_routes(app):
             if errors:
                 for error in errors:
                     flash(error, "danger")
-                return render_template("index.html", errors=errors, form={"category": category, "message": message, "is_urgent": is_urgent})
+                return render_template("index.html", errors=errors, form={"title": title, "category": category, "message": message})
 
             connection = get_connection()
             cursor = connection.cursor()
             try:
                 cursor.execute(
-                    "INSERT INTO anonymous_messages (category, message, is_urgent, status) VALUES (%s, %s, %s, 'New')",
-                    (category, message.strip(), is_urgent)
+                    "INSERT INTO anonymous_messages (title, category, message, status, user_id) VALUES (%s, %s, %s, 'Approved', %s)",
+                    (title if title else None, category, message.strip(), session.get("user_id"))
                 )
                 connection.commit()
-                flash("Your anonymous message has been received. Thank you for reaching out.", "success")
-                return redirect(url_for("home"))
+                flash("Your anonymous message has been published successfully.", "success")
+                return redirect(url_for("community_wall"))
             except Exception as e:
                 connection.rollback()
-                flash("An error occurred while submitting your message. Please try again.", "danger")
+                flash("An error occurred while submitting your post. Please try again.", "danger")
             finally:
                 cursor.close()
                 connection.close()
 
-            return render_template("index.html", errors=["Database error. Please try again."], form={"category": category, "message": message, "is_urgent": is_urgent})
+            return render_template("index.html", errors=["Database error. Please try again."], form={"title": title, "category": category, "message": message})
 
         return render_template("index.html", errors=None, form={})
 
@@ -513,8 +517,31 @@ def register_routes(app):
     @app.route("/student/appointment", methods=["GET", "POST"])
     @survey_required
     def student_appointment():
+        student_id = get_logged_in_student_id()
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT assigned_counselor_id FROM students WHERE id = %s", (student_id,))
+        student_row = cursor.fetchone()
+        assigned_counselor_id = student_row[0] if student_row else None
+
+        assigned_counselor = None
+        if assigned_counselor_id:
+            cursor.execute("""
+                SELECT c.id, u.name, c.specialization, c.office
+                FROM counselors c
+                JOIN users u ON c.user_id = u.id
+                WHERE c.id = %s
+            """, (assigned_counselor_id,))
+            assigned_counselor = cursor.fetchone()
+
+        cursor.close()
+        connection.close()
+
         if request.method == "POST":
-            student_id = get_logged_in_student_id()
+            if not assigned_counselor_id:
+                flash("You have not yet been assigned a counselor. Please contact the Student Affairs Office.", "danger")
+                return redirect(url_for("student_appointment"))
+
             preferred_date = request.form.get("preferred_date")
             preferred_time = request.form.get("preferred_time")
             appointment_type = request.form.get("appointment_type", "follow_up")
@@ -522,9 +549,6 @@ def register_routes(app):
             appointment_datetime = f"{preferred_date} {preferred_time}"
             connection = get_connection()
             cursor = connection.cursor()
-            cursor.execute("SELECT assigned_counselor_id FROM students WHERE id = %s", (student_id,))
-            student_row = cursor.fetchone()
-            assigned_counselor_id = student_row[0] if student_row else None
             cursor.execute("""
                 INSERT INTO appointments (student_id, counselor_id, appointment_date, appointment_type, status, meeting_notes)
                 VALUES (%s, %s, %s, %s, 'pending', %s)
@@ -535,7 +559,332 @@ def register_routes(app):
             connection.close()
 
             return redirect(url_for("student_dashboard"))
-        return render_template("student_appointment.html")
+        return render_template("student_appointment.html", assigned_counselor=assigned_counselor)
+
+    @app.route("/community-wall/create")
+    @login_required
+    def community_wall_create():
+        return render_template("community_wall_create.html", active_page='community')
+
+    @app.route("/community-wall", methods=["GET", "POST"])
+    @login_required
+    def community_wall():
+        search = request.args.get('search', '').strip()
+        category_filter = request.args.get('category', 'all').strip()
+        sort_by = request.args.get('sort', 'newest').lower()
+
+        if request.method == "POST":
+            title = request.form.get("title", "").strip()
+            category = request.form.get("category", "").strip()
+            message = request.form.get("message", "").strip()
+
+            errors = []
+            if not category:
+                errors.append("Please select a category.")
+            if not message or len(message.strip()) < 10:
+                errors.append("Post must be at least 10 characters long.")
+
+            if errors:
+                return render_template("community_wall_create.html", errors=errors, form={"title": title, "category": category, "message": message}, active_page='community')
+
+            connection = get_connection()
+            cursor = connection.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO anonymous_messages (title, category, message, status, user_id) VALUES (%s, %s, %s, 'Approved', %s)",
+                    (title if title else None, category, message.strip(), session.get("user_id"))
+                )
+                connection.commit()
+                flash("Your post has been published to the Community Wall.", "success")
+            except Exception:
+                connection.rollback()
+                flash("An error occurred while posting. Please try again.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        query = """
+            SELECT id, title, category, message, status, user_id, likes_count, supports_count, comments_count, is_pinned, created_at
+            FROM anonymous_messages
+        """
+        params = []
+        conditions = []
+
+        if search:
+            conditions.append("(title LIKE %s OR message LIKE %s OR category LIKE %s)")
+            params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
+
+        if category_filter != 'all':
+            conditions.append("category = %s")
+            params.append(category_filter)
+
+        if conditions:
+            query += " AND " + " AND ".join(conditions)
+
+        if sort_by == 'most_liked':
+            query += " ORDER BY likes_count DESC, created_at DESC"
+        elif sort_by == 'most_supported':
+            query += " ORDER BY supports_count DESC, created_at DESC"
+        else:
+            query += " ORDER BY is_pinned DESC, created_at DESC"
+
+        cursor.execute(query, params)
+        posts = cursor.fetchall()
+
+        cursor.execute("SELECT DISTINCT category FROM anonymous_messages ORDER BY category ASC")
+        categories = [row[0] for row in cursor.fetchall()]
+
+        post_ids = [post[0] for post in posts]
+        comments_map = {}
+        if post_ids:
+            placeholders = ','.join(['%s'] * len(post_ids))
+            cursor.execute(f"""
+                SELECT cc.id, cc.post_id, cc.comment_text, cc.created_at
+                FROM community_comments cc
+                WHERE cc.post_id IN ({placeholders})
+                ORDER BY cc.created_at ASC
+            """, post_ids)
+            for row in cursor.fetchall():
+                post_id = row[1]
+                if post_id not in comments_map:
+                    comments_map[post_id] = []
+                comments_map[post_id].append({
+                    'id': row[0],
+                    'text': row[2],
+                    'created_at': row[3].strftime('%B %d, %Y %I:%M %p') if row[3] else '',
+                })
+
+        posts_with_comments = []
+        for post in posts:
+            post_list = list(post)
+            post_list.append(comments_map.get(post[0], []))
+            posts_with_comments.append(tuple(post_list))
+
+        cursor.close()
+        connection.close()
+
+        is_moderator = session.get("user_role") in ('admin', 'counselor')
+
+        return render_template("community_wall.html", posts=posts_with_comments, categories=categories, filters={
+            'search': search,
+            'category': category_filter,
+            'sort': sort_by
+        }, active_page='community', is_moderator=is_moderator)
+
+    @app.route("/community-wall/<int:post_id>/comment", methods=["POST"])
+    @login_required
+    def add_comment(post_id):
+        comment_text = request.form.get("comment", "").strip()
+        if not comment_text or len(comment_text) < 1:
+            flash("Comment cannot be empty.", "danger")
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT id FROM anonymous_messages WHERE id = %s", (post_id,))
+            if not cursor.fetchone():
+                flash("Post not found.", "danger")
+                return redirect(url_for("community_wall"))
+
+            cursor.execute(
+                "INSERT INTO community_comments (post_id, user_id, comment_text) VALUES (%s, %s, %s)",
+                (post_id, session.get("user_id"), comment_text)
+            )
+            cursor.execute(
+                "UPDATE anonymous_messages SET comments_count = comments_count + 1 WHERE id = %s",
+                (post_id,)
+            )
+            connection.commit()
+            flash("Comment added successfully.", "success")
+        except Exception:
+            connection.rollback()
+            flash("An error occurred while adding your comment.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("community_wall"))
+
+    @app.route("/community-wall/<int:post_id>/react", methods=["POST"])
+    @login_required
+    def react_to_post(post_id):
+        reaction_type = request.form.get("type", "").strip()
+        if reaction_type not in ('like', 'support'):
+            flash("Invalid reaction type.", "danger")
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT id FROM anonymous_messages WHERE id = %s", (post_id,))
+            if not cursor.fetchone():
+                flash("Post not found.", "danger")
+                return redirect(url_for("community_wall"))
+
+            cursor.execute(
+                "SELECT id FROM community_reactions WHERE post_id = %s AND user_id = %s AND reaction_type = %s",
+                (post_id, session.get("user_id"), reaction_type)
+            )
+            existing = cursor.fetchone()
+
+            if existing:
+                cursor.execute(
+                    "DELETE FROM community_reactions WHERE id = %s",
+                    (existing[0],)
+                )
+                if reaction_type == 'like':
+                    cursor.execute("UPDATE anonymous_messages SET likes_count = likes_count - 1 WHERE id = %s", (post_id,))
+                else:
+                    cursor.execute("UPDATE anonymous_messages SET supports_count = supports_count - 1 WHERE id = %s", (post_id,))
+            else:
+                cursor.execute(
+                    "INSERT INTO community_reactions (post_id, user_id, reaction_type) VALUES (%s, %s, %s)",
+                    (post_id, session.get("user_id"), reaction_type)
+                )
+                if reaction_type == 'like':
+                    cursor.execute("UPDATE anonymous_messages SET likes_count = likes_count + 1 WHERE id = %s", (post_id,))
+                else:
+                    cursor.execute("UPDATE anonymous_messages SET supports_count = supports_count + 1 WHERE id = %s", (post_id,))
+
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            flash("An error occurred while processing your reaction.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("community_wall"))
+
+    @app.route("/community-wall/<int:post_id>/pin", methods=["POST"])
+    @login_required
+    def pin_post(post_id):
+        if session.get("user_role") not in ('admin', 'counselor'):
+            flash("You do not have permission to perform this action.", "danger")
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("UPDATE anonymous_messages SET is_pinned = TRUE WHERE id = %s", (post_id,))
+            connection.commit()
+            flash("Post pinned successfully.", "success")
+        except Exception:
+            connection.rollback()
+            flash("An error occurred while pinning the post.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("community_wall"))
+
+    @app.route("/community-wall/<int:post_id>/unpin", methods=["POST"])
+    @login_required
+    def unpin_post(post_id):
+        if session.get("user_role") not in ('admin', 'counselor'):
+            flash("You do not have permission to perform this action.", "danger")
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("UPDATE anonymous_messages SET is_pinned = FALSE WHERE id = %s", (post_id,))
+            connection.commit()
+            flash("Post unpinned successfully.", "success")
+        except Exception:
+            connection.rollback()
+            flash("An error occurred while unpinning the post.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("community_wall"))
+
+    @app.route("/community-wall/<int:post_id>/delete", methods=["POST"])
+    @login_required
+    def delete_post(post_id):
+        if session.get("user_role") not in ('admin', 'counselor'):
+            flash("You do not have permission to perform this action.", "danger")
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("DELETE FROM community_comments WHERE post_id = %s", (post_id,))
+            cursor.execute("DELETE FROM community_reactions WHERE post_id = %s", (post_id,))
+            cursor.execute("DELETE FROM anonymous_messages WHERE id = %s", (post_id,))
+            connection.commit()
+            flash("Post deleted successfully.", "success")
+        except Exception:
+            connection.rollback()
+            flash("An error occurred while deleting the post.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("community_wall"))
+
+    @app.route("/community-wall/comment/<int:comment_id>/delete", methods=["POST"])
+    @login_required
+    def delete_comment(comment_id):
+        if session.get("user_role") not in ('admin', 'counselor'):
+            flash("You do not have permission to perform this action.", "danger")
+            return redirect(url_for("community_wall"))
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT post_id FROM community_comments WHERE id = %s", (comment_id,))
+            result = cursor.fetchone()
+            if result:
+                post_id = result[0]
+                cursor.execute("DELETE FROM community_comments WHERE id = %s", (comment_id,))
+                cursor.execute("UPDATE anonymous_messages SET comments_count = comments_count - 1 WHERE id = %s", (post_id,))
+                connection.commit()
+                flash("Comment deleted successfully.", "success")
+            else:
+                flash("Comment not found.", "danger")
+        except Exception:
+            connection.rollback()
+            flash("An error occurred while deleting the comment.", "danger")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return redirect(url_for("community_wall"))
+
+    @app.route("/community-wall/comments/<int:post_id>")
+    @login_required
+    def get_post_comments(post_id):
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT cc.id, cc.comment_text, cc.created_at, u.name
+            FROM community_comments cc
+            LEFT JOIN users u ON cc.user_id = u.id
+            WHERE cc.post_id = %s
+            ORDER BY cc.created_at ASC
+        """, (post_id,))
+        comments = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        comments_data = []
+        for comment in comments:
+            comments_data.append({
+                'id': comment[0],
+                'text': comment[1],
+                'created_at': comment[2].strftime('%B %d, %Y %I:%M %p') if comment[2] else '',
+                'author': 'Anonymous'
+            })
+
+        return jsonify(comments_data)
 
     @app.route("/student/profile", methods=["GET", "POST"])
     @login_required
@@ -687,10 +1036,10 @@ def register_routes(app):
                 WHERE counselor_id = %s AND status = 'completed'
             """, (counselor_id,))
             completed_sessions = cursor.fetchone()[0] or 0
-            cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
-            new_anonymous_messages = cursor.fetchone()[0] or 0
-            cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
-            urgent_anonymous_messages = cursor.fetchone()[0] or 0
+            cursor.execute("SELECT COUNT(*) FROM anonymous_messages")
+            total_community_posts = cursor.fetchone()[0] or 0
+            cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_pinned = TRUE")
+            pinned_community_posts = cursor.fetchone()[0] or 0
             cursor.execute("""
                 SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status
                 FROM appointments a
@@ -705,9 +1054,9 @@ def register_routes(app):
             FROM appointments a
             JOIN students s ON a.student_id = s.id
             JOIN users u ON s.user_id = u.id
-            WHERE (a.counselor_id IS NULL OR a.status = 'pending') AND a.status IN ('pending', 'scheduled')
+            WHERE a.counselor_id = %s AND a.status IN ('pending', 'scheduled')
             ORDER BY a.appointment_date ASC
-        """)
+        """, (counselor_id,))
         appointment_requests = cursor.fetchall()
         cursor.close()
         connection.close()
@@ -722,8 +1071,8 @@ def register_routes(app):
             "completed_sessions": completed_sessions,
             "appointment_requests": appointment_requests,
             "my_appointments": my_appointments,
-            "new_anonymous_messages": new_anonymous_messages,
-            "urgent_anonymous_messages": urgent_anonymous_messages
+            "total_community_posts": total_community_posts,
+            "pinned_community_posts": pinned_community_posts
         }
         return render_template("counselor_dashboard.html", data=counselor_data)
 
@@ -814,9 +1163,9 @@ def register_routes(app):
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
-                WHERE (a.counselor_id IS NULL OR a.status = 'pending') AND a.status IN ('pending', 'scheduled')
+                WHERE a.counselor_id = %s AND a.status IN ('pending', 'scheduled')
             """
-            params = []
+            params = [counselor_id]
             
             if search:
                 query += " AND u.name LIKE %s"
@@ -1045,8 +1394,8 @@ def register_routes(app):
         cursor.execute("""
             UPDATE appointments
             SET counselor_id = %s, status = 'scheduled'
-            WHERE id = %s AND (counselor_id IS NULL OR status = 'pending')
-        """, (counselor_id, appointment_id))
+            WHERE id = %s AND counselor_id = %s AND status = 'pending'
+        """, (counselor_id, appointment_id, counselor_id))
         connection.commit()
         cursor.close()
         connection.close()
@@ -1068,8 +1417,8 @@ def register_routes(app):
         cursor.execute("""
             UPDATE appointments
             SET status = 'cancelled', rejection_reason = %s, counselor_id = %s
-            WHERE id = %s AND (counselor_id IS NULL OR status = 'pending')
-        """, (rejection_reason, counselor_id, appointment_id))
+            WHERE id = %s AND counselor_id = %s AND status = 'pending'
+        """, (rejection_reason, counselor_id, appointment_id, counselor_id))
         connection.commit()
         cursor.close()
         connection.close()
@@ -1079,13 +1428,17 @@ def register_routes(app):
     @role_required('counselor')
     def counselor_complete_appointment(appointment_id):
         meeting_notes = request.form.get('meeting_notes', '').strip()
+        user_id = session.get("user_id")
         connection = get_connection()
         cursor = connection.cursor()
+        cursor.execute("SELECT id FROM counselors WHERE user_id = %s", (user_id,))
+        counselor = cursor.fetchone()
+        counselor_id = counselor[0] if counselor else None
         cursor.execute("""
             UPDATE appointments
             SET status = 'completed', meeting_notes = %s
-            WHERE id = %s AND status = 'scheduled'
-        """, (meeting_notes, appointment_id))
+            WHERE id = %s AND counselor_id = %s AND status = 'scheduled'
+        """, (meeting_notes, appointment_id, counselor_id))
         connection.commit()
         cursor.close()
         connection.close()
@@ -1119,11 +1472,9 @@ def register_routes(app):
         cursor.execute("SELECT COUNT(*) FROM survey_responses")
         total_surveys = cursor.fetchone()[0]
         cursor.execute("SELECT COUNT(*) FROM anonymous_messages")
-        total_anonymous = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
-        new_anonymous = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
-        urgent_anonymous = cursor.fetchone()[0]
+        total_community_posts = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_pinned = TRUE")
+        pinned_posts = cursor.fetchone()[0]
         cursor.close()
         connection.close()
         admin_data = {
@@ -1134,9 +1485,8 @@ def register_routes(app):
             "critical_cases": critical_cases,
             "intervention_required": intervention_required,
             "total_surveys": total_surveys,
-            "total_anonymous": total_anonymous,
-            "new_anonymous": new_anonymous,
-            "urgent_anonymous": urgent_anonymous
+            "total_community_posts": total_community_posts,
+            "pinned_posts": pinned_posts
         }
         return render_template("admin_dashboard.html", data=admin_data)
 
@@ -2336,196 +2686,3 @@ def register_routes(app):
         }
 
         return render_template("admin_edit_counselor.html", counselor=counselor_data)
-
-    @app.route("/admin/anonymous-messages")
-    @role_required('admin')
-    def admin_anonymous_messages():
-        search = request.args.get('search', '').strip()
-        status_filter = request.args.get('status', 'all').lower()
-        urgent_filter = request.args.get('urgent', 'all').lower()
-
-        connection = get_connection()
-        cursor = connection.cursor()
-
-        query = """
-            SELECT id, category, message, is_urgent, status, created_at
-            FROM anonymous_messages
-        """
-        params = []
-        conditions = []
-
-        if search:
-            conditions.append("(category LIKE %s OR message LIKE %s)")
-            params.extend([f"%{search}%", f"%{search}%"])
-
-        if status_filter != 'all':
-            conditions.append("status = %s")
-            params.append(status_filter.capitalize())
-
-        if urgent_filter != 'all':
-            conditions.append("is_urgent = %s")
-            params.append(urgent_filter == 'urgent')
-
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        query += " ORDER BY created_at DESC"
-
-        cursor.execute(query, params)
-        messages = cursor.fetchall()
-
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages")
-        total = cursor.fetchone()[0]
-
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
-        new_count = cursor.fetchone()[0]
-
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
-        urgent_count = cursor.fetchone()[0]
-
-        cursor.close()
-        connection.close()
-
-        return render_template("admin_anonymous_messages.html", messages=messages, total=total, new_count=new_count, urgent_count=urgent_count, filters={
-            'search': search,
-            'status': status_filter,
-            'urgent': urgent_filter
-        })
-
-    @app.route("/admin/anonymous-message/<int:message_id>")
-    @role_required('admin')
-    def admin_view_anonymous_message(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT id, category, message, is_urgent, status, created_at FROM anonymous_messages WHERE id = %s", (message_id,))
-        message = cursor.fetchone()
-        cursor.close()
-        connection.close()
-
-        if not message:
-            flash("Message not found.", "danger")
-            return redirect(url_for("admin_anonymous_messages"))
-
-        return render_template("admin_view_anonymous_message.html", message=message)
-
-    @app.route("/admin/anonymous-message/<int:message_id>/mark-read", methods=["POST"])
-    @role_required('admin')
-    def admin_mark_anonymous_read(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("UPDATE anonymous_messages SET status = 'Read', read_at = NOW() WHERE id = %s", (message_id,))
-        connection.commit()
-        cursor.close()
-        connection.close()
-        flash("Message marked as read.", "success")
-        return redirect(url_for("admin_anonymous_messages"))
-
-    @app.route("/admin/anonymous-message/<int:message_id>/archive", methods=["POST"])
-    @role_required('admin')
-    def admin_archive_anonymous(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("UPDATE anonymous_messages SET status = 'Archived' WHERE id = %s", (message_id,))
-        connection.commit()
-        cursor.close()
-        connection.close()
-        flash("Message archived.", "success")
-        return redirect(url_for("admin_anonymous_messages"))
-
-    @app.route("/admin/anonymous-message/<int:message_id>/delete", methods=["POST"])
-    @role_required('admin')
-    def admin_delete_anonymous(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("DELETE FROM anonymous_messages WHERE id = %s", (message_id,))
-        connection.commit()
-        cursor.close()
-        connection.close()
-        flash("Message deleted successfully.", "success")
-        return redirect(url_for("admin_anonymous_messages"))
-
-    @app.route("/counselor/anonymous-messages")
-    @role_required('counselor')
-    def counselor_anonymous_messages():
-        search = request.args.get('search', '').strip()
-        status_filter = request.args.get('status', 'all').lower()
-
-        connection = get_connection()
-        cursor = connection.cursor()
-
-        query = """
-            SELECT id, category, message, is_urgent, status, created_at
-            FROM anonymous_messages
-        """
-        params = []
-        conditions = []
-
-        if search:
-            conditions.append("(category LIKE %s OR message LIKE %s)")
-            params.extend([f"%{search}%", f"%{search}%"])
-
-        if status_filter != 'all':
-            conditions.append("status = %s")
-            params.append(status_filter.capitalize())
-
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        query += " ORDER BY created_at DESC"
-
-        cursor.execute(query, params)
-        messages = cursor.fetchall()
-
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE status = 'New'")
-        new_count = cursor.fetchone()[0]
-
-        cursor.execute("SELECT COUNT(*) FROM anonymous_messages WHERE is_urgent = TRUE")
-        urgent_count = cursor.fetchone()[0]
-
-        cursor.close()
-        connection.close()
-
-        return render_template("counselor_anonymous_messages.html", messages=messages, new_count=new_count, urgent_count=urgent_count, filters={
-            'search': search,
-            'status': status_filter
-        })
-
-    @app.route("/counselor/anonymous-message/<int:message_id>")
-    @role_required('counselor')
-    def counselor_view_anonymous_message(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT id, category, message, is_urgent, status, created_at FROM anonymous_messages WHERE id = %s", (message_id,))
-        message = cursor.fetchone()
-        cursor.close()
-        connection.close()
-
-        if not message:
-            flash("Message not found.", "danger")
-            return redirect(url_for("counselor_anonymous_messages"))
-
-        return render_template("counselor_view_anonymous_message.html", message=message)
-
-    @app.route("/counselor/anonymous-message/<int:message_id>/mark-read", methods=["POST"])
-    @role_required('counselor')
-    def counselor_mark_anonymous_read(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("UPDATE anonymous_messages SET status = 'Read', read_at = NOW() WHERE id = %s", (message_id,))
-        connection.commit()
-        cursor.close()
-        connection.close()
-        flash("Message marked as read.", "success")
-        return redirect(url_for("counselor_anonymous_messages"))
-
-    @app.route("/counselor/anonymous-message/<int:message_id>/archive", methods=["POST"])
-    @role_required('counselor')
-    def counselor_archive_anonymous(message_id):
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("UPDATE anonymous_messages SET status = 'Archived' WHERE id = %s", (message_id,))
-        connection.commit()
-        cursor.close()
-        connection.close()
-        flash("Message archived.", "success")
-        return redirect(url_for("counselor_anonymous_messages"))
