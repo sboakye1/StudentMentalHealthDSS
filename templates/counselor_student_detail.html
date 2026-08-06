@@ -512,8 +512,12 @@
                 <h5>Student Information</h5>
               </div>
               <div class="info-row">
-                <span class="info-label">Student ID</span>
-                <span class="info-value">{{ data.student[1] }}</span>
+                <span class="info-label">Student Number</span>
+                <span class="info-value" style="font-family: monospace;">{{ data.student[1] }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Phone</span>
+                <span class="info-value">{{ data.student[2] or 'N/A' }}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Email</span>
@@ -551,7 +555,7 @@
               <div class="info-row">
                 <span class="info-label">Intervention Required</span>
                 <span class="info-value">
-                  {% if data.student[8] %}
+                  {% if data.student[9] %}
                     <span style="color: #fca5a5; font-weight: 600;">Yes</span>
                   {% else %}
                     <span style="color: #6ee7b7; font-weight: 600;">No</span>
@@ -561,7 +565,7 @@
               <div class="info-row">
                 <span class="info-label">Recommendation</span>
                 <span class="info-value" style="text-align: right; font-size: 0.85rem; font-weight: 400;">
-                  {% if data.student[9] %}{{ data.student[9][:60] }}{% if data.student[9]|length > 60 %}...{% endif %}{% else %}No recommendation{% endif %}
+                  {% if data.student[10] %}{{ data.student[10][:60] }}{% if data.student[10]|length > 60 %}...{% endif %}{% else %}No recommendation{% endif %}
                 </span>
               </div>
             </div>

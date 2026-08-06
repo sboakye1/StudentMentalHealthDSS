@@ -278,6 +278,7 @@
 
       .header-icon.wellness { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
       .header-icon.appointment { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+      .header-icon.counselor { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
       .header-icon.actions { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
       .header-icon.tips { background: rgba(13, 148, 136, 0.15); color: #5eead4; }
 
@@ -555,6 +556,34 @@
           </div>
 
           <div class="col-lg-4 d-flex flex-column">
+            <div class="glass-card">
+              <div class="card-header" style="padding: 0 0 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 0.5rem;">
+                <span class="header-icon counselor">&#x1F9D1;&#x200D;&#x2695;&#xFE0F;</span>
+                <h5 style="font-weight: 600; font-size: 1rem; margin: 0; color: #f8fafc;">Your Assigned Counselor</h5>
+              </div>
+              {% if data.assigned_counselor %}
+              <div class="info-row">
+                <span class="info-label">Counselor</span>
+                <span class="info-value">{{ data.assigned_counselor.name }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Specialization</span>
+                <span class="info-value">{{ data.assigned_counselor.specialization }}</span>
+              </div>
+              {% if data.assigned_counselor.office %}
+              <div class="info-row">
+                <span class="info-label">Office</span>
+                <span class="info-value">{{ data.assigned_counselor.office }}</span>
+              </div>
+              {% endif %}
+              <a href="{{ url_for('student_appointment') }}" class="action-btn" style="margin-top: 0.75rem;">Request an Appointment</a>
+              {% else %}
+              <div class="empty-state py-2">
+                <h5>Counselor assignment pending</h5>
+                <p class="mb-0">A counselor has not been assigned to you yet. Please contact Student Affairs if you need support sooner.</p>
+              </div>
+              {% endif %}
+            </div>
             <div class="glass-card">
               <div class="card-header" style="padding: 0 0 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 0.5rem;">
                 <span class="header-icon appointment">&#x1F4C5;</span>

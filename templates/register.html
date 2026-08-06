@@ -203,8 +203,8 @@
             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
           </div>
           <div class="mb-3">
-            <label for="student_id_number" class="form-label">Student ID Number</label>
-            <input type="text" class="form-control" id="student_id_number" name="student_id_number" required value="{{ form.student_id_number if form else '' }}">
+            <label for="student_id_number" class="form-label">Student Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="student_id_number" name="student_id_number" required minlength="3" maxlength="50" autocomplete="off" value="{{ form.student_id_number if form else '' }}">
           </div>
           <div class="mb-3">
             <label for="year" class="form-label">Level</label>
@@ -216,8 +216,8 @@
             </select>
           </div>
           <div class="mb-3">
-            <label for="phone" class="form-label">Phone (optional)</label>
-            <input type="tel" class="form-control" id="phone" name="phone" value="{{ form.phone if form else '' }}">
+            <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+            <input type="tel" class="form-control" id="phone" name="phone" required value="{{ form.phone if form else '' }}">
           </div>
           <button type="submit" class="btn btn-register">Create Account</button>
         </form>

@@ -92,6 +92,17 @@ def get_user_role(user_id):
     return result[0] if result else None
 
 
+def redirect_to_counselor_action_origin():
+    """Return an appointment action to its validated originating counselor page."""
+    allowed_endpoints = {
+        "counselor_dashboard",
+        "counselor_requests",
+        "counselor_appointments",
+    }
+    endpoint = request.form.get("return_to", "counselor_dashboard")
+    return redirect(url_for(endpoint if endpoint in allowed_endpoints else "counselor_dashboard"))
+
+
 def _get_or_create_dev_student():
     connection = get_connection()
     cursor = connection.cursor()
@@ -229,8 +240,14 @@ def register_routes(app):
             phone = request.form.get("phone", "").strip()
 
             errors = []
-            if not name or not email or not password or not confirm_password or not student_id_number:
+            if not name or not email or not password or not confirm_password:
                 errors.append("All required fields must be filled in.")
+            if not student_id_number:
+                errors.append("Student number is required.")
+            elif len(student_id_number) > 50:
+                errors.append("Student number must be 50 characters or fewer.")
+            if not phone:
+                errors.append("Phone number is required.")
             if password != confirm_password:
                 errors.append("Passwords do not match.")
 
@@ -360,15 +377,23 @@ def register_routes(app):
         """, (student_id, student_id))
         result = cursor.fetchone()
 
-        cursor.execute("SELECT assigned_counselor_id FROM students WHERE id = %s", (student_id,))
-        assigned_counselor_row = cursor.fetchone()
-        assigned_counselor_id = assigned_counselor_row[0] if assigned_counselor_row and assigned_counselor_row[0] else None
-        
-        assigned_counselor_name = None
-        if assigned_counselor_id:
-            cursor.execute("SELECT u.name FROM counselors c JOIN users u ON c.user_id = u.id WHERE c.id = %s", (assigned_counselor_id,))
-            counselor_result = cursor.fetchone()
-            assigned_counselor_name = counselor_result[0] if counselor_result else None
+        # Resolve the counselor through this student's assignment only.  Do not
+        # accept a counselor identifier from the request or session here.
+        cursor.execute("""
+            SELECT c.id, u.name, c.specialization, c.office
+            FROM students s
+            JOIN counselors c ON c.id = s.assigned_counselor_id
+            JOIN users u ON u.id = c.user_id
+            WHERE s.id = %s AND u.is_active = TRUE
+        """, (student_id,))
+        counselor_result = cursor.fetchone()
+        assigned_counselor = None
+        if counselor_result:
+            assigned_counselor = {
+                "name": counselor_result[1],
+                "specialization": counselor_result[2] or "Student Support",
+                "office": counselor_result[3] or None,
+            }
 
         cursor.execute("""
             SELECT appointment_date, status
@@ -424,7 +449,7 @@ def register_routes(app):
             "intervention_required": bool(result[6]) if result else False,
             "total_surveys": result[7] if result else 0,
             "upcoming_appointment": upcoming_appointment,
-            "assigned_counselor": assigned_counselor_name
+            "assigned_counselor": assigned_counselor,
         }
         return render_template("student_dashboard.html", data=dashboard_data)
 
@@ -1050,11 +1075,11 @@ def register_routes(app):
             """, (counselor_id,))
             my_appointments = cursor.fetchall()
         cursor.execute("""
-            SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.meeting_notes
+            SELECT a.id, u.name, s.student_id_number, a.appointment_date, a.appointment_type, a.meeting_notes
             FROM appointments a
             JOIN students s ON a.student_id = s.id
             JOIN users u ON s.user_id = u.id
-            WHERE a.counselor_id = %s AND a.status IN ('pending', 'scheduled')
+            WHERE a.counselor_id = %s AND a.status = 'pending'
             ORDER BY a.appointment_date ASC
         """, (counselor_id,))
         appointment_requests = cursor.fetchall()
@@ -1093,7 +1118,7 @@ def register_routes(app):
         students = []
         if counselor_id:
             query = """
-                SELECT DISTINCT s.id, u.name, s.student_id_number, ss.overall_score, ss.risk_level,
+                SELECT DISTINCT s.id, u.name, s.student_id_number, s.phone, ss.overall_score, ss.risk_level,
                        ss.last_assessment_date,
                        CASE ss.risk_level
                            WHEN 'High' THEN 'Critical'
@@ -1102,7 +1127,7 @@ def register_routes(app):
                            ELSE 'Not Assigned'
                        END AS priority,
                        ss.recommendations
-                FROM students s
+                 FROM students s
                 JOIN users u ON s.user_id = u.id
                 LEFT JOIN survey_summary ss ON s.id = ss.student_id
                 LEFT JOIN counselor_assignments ca ON s.id = ca.student_id AND ca.status = 'active'
@@ -1159,11 +1184,11 @@ def register_routes(app):
         requests = []
         if counselor_id:
             query = """
-                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.meeting_notes
+                SELECT a.id, u.name, s.student_id_number, a.appointment_date, a.appointment_type, a.meeting_notes
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
-                WHERE a.counselor_id = %s AND a.status IN ('pending', 'scheduled')
+                WHERE a.counselor_id = %s AND a.status = 'pending'
             """
             params = [counselor_id]
             
@@ -1197,7 +1222,7 @@ def register_routes(app):
         appointments = []
         if counselor_id:
             query = """
-                SELECT a.id, u.name, a.appointment_date, a.appointment_type, a.status, a.meeting_notes, a.rejection_reason
+                SELECT a.id, u.name, s.student_id_number, s.phone, a.appointment_date, a.appointment_type, a.status, a.meeting_notes, a.rejection_reason
                 FROM appointments a
                 JOIN students s ON a.student_id = s.id
                 JOIN users u ON s.user_id = u.id
@@ -1230,7 +1255,7 @@ def register_routes(app):
         counselor = cursor.fetchone()
         counselor_id = counselor[0] if counselor else None
         cursor.execute("""
-            SELECT s.id, s.student_id_number, u.name, u.email, ss.overall_score, ss.risk_level, ss.last_assessment_date,
+            SELECT s.id, s.student_id_number, s.phone, u.name, u.email, ss.overall_score, ss.risk_level, ss.last_assessment_date,
                    CASE ss.risk_level
                        WHEN 'High' THEN 'Critical'
                        WHEN 'Medium' THEN 'Medium'
@@ -1238,10 +1263,10 @@ def register_routes(app):
                        ELSE 'Not Assigned'
                    END AS priority,
                    ss.action_required, ss.recommendations
-            FROM students s
-            JOIN users u ON s.user_id = u.id
-            LEFT JOIN survey_summary ss ON s.id = ss.student_id
-            WHERE s.id = %s
+             FROM students s
+             JOIN users u ON s.user_id = u.id
+             LEFT JOIN survey_summary ss ON s.id = ss.student_id
+             WHERE s.id = %s
         """, (student_id,))
         student = cursor.fetchone()
         cursor.execute("""
@@ -1396,10 +1421,15 @@ def register_routes(app):
             SET counselor_id = %s, status = 'scheduled'
             WHERE id = %s AND counselor_id = %s AND status = 'pending'
         """, (counselor_id, appointment_id, counselor_id))
+        updated = cursor.rowcount
         connection.commit()
         cursor.close()
         connection.close()
-        return redirect(url_for("counselor_dashboard"))
+        if updated:
+            flash("Appointment approved and scheduled successfully.", "success")
+        else:
+            flash("This appointment could not be approved. It may already have been updated.", "danger")
+        return redirect_to_counselor_action_origin()
 
     @app.route("/counselor/appointment/<int:appointment_id>/reject", methods=["POST"])
     @role_required('counselor')
@@ -1419,10 +1449,15 @@ def register_routes(app):
             SET status = 'cancelled', rejection_reason = %s, counselor_id = %s
             WHERE id = %s AND counselor_id = %s AND status = 'pending'
         """, (rejection_reason, counselor_id, appointment_id, counselor_id))
+        updated = cursor.rowcount
         connection.commit()
         cursor.close()
         connection.close()
-        return redirect(url_for("counselor_dashboard"))
+        if updated:
+            flash("Appointment request rejected.", "success")
+        else:
+            flash("This appointment could not be rejected. It may already have been updated.", "danger")
+        return redirect_to_counselor_action_origin()
 
     @app.route("/counselor/appointment/<int:appointment_id>/complete", methods=["POST"])
     @role_required('counselor')
@@ -1439,10 +1474,15 @@ def register_routes(app):
             SET status = 'completed', meeting_notes = %s
             WHERE id = %s AND counselor_id = %s AND status = 'scheduled'
         """, (meeting_notes, appointment_id, counselor_id))
+        updated = cursor.rowcount
         connection.commit()
         cursor.close()
         connection.close()
-        return redirect(url_for("counselor_dashboard"))
+        if updated:
+            flash("Appointment marked as completed.", "success")
+        else:
+            flash("This appointment could not be completed. It may already have been updated.", "danger")
+        return redirect_to_counselor_action_origin()
 
     @app.route("/api/health")
     def health_check():

@@ -503,6 +503,7 @@
               <thead>
                 <tr>
                   <th>Student</th>
+                  <th>Student Number</th>
                   <th>Date</th>
                   <th>Type</th>
                   <th>Notes</th>
@@ -513,19 +514,22 @@
                 {% for req in requests %}
                 <tr>
                   <td style="font-weight: 600; color: #f8fafc;">{{ req[1] }}</td>
-                  <td style="color: #cbd5e1;">{{ req[2].strftime('%m/%d/%Y %H:%M') if req[2] else 'N/A' }}</td>
+                  <td style="color: #cbd5e1; font-family: monospace;">{{ req[2] }}</td>
+                  <td style="color: #cbd5e1;">{{ req[3].strftime('%m/%d/%Y %H:%M') if req[3] else 'N/A' }}</td>
                   <td>
-                    <span class="badge-risk {{ req[3]|lower|replace(' ', '_') }}" style="background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3);">
-                      {{ req[3] or 'N/A' }}
+                    <span class="badge-risk {{ req[4]|lower|replace(' ', '_') }}" style="background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3);">
+                      {{ req[4] or 'N/A' }}
                     </span>
                   </td>
-                  <td style="color: #94a3b8;">{{ req[4][:50] + '...' if req[4] and req[4]|length > 50 else (req[4] or '-') }}</td>
+                  <td style="color: #94a3b8;">{{ req[5][:50] + '...' if req[5] and req[5]|length > 50 else (req[5] or '-') }}</td>
                   <td style="text-align: center;">
                     <form action="{{ url_for('counselor_approve_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="return_to" value="counselor_requests">
                       <button type="submit" class="btn-icon approve" title="Approve">&#x2713;</button>
                     </form>
-                    <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline" onsubmit="return confirmReject(this);">
-                      <button type="submit" class="btn-icon reject ms-1" title="Reject">&#x2717;</button>
+                    <form action="{{ url_for('counselor_reject_appointment', appointment_id=req[0]) }}" method="POST" class="d-inline">
+                      <input type="hidden" name="return_to" value="counselor_requests">
+                      <button type="button" class="btn-icon reject ms-1" title="Reject" onclick="openAppointmentActionModal(this.form, 'reject');">&#x2717;</button>
                     </form>
                   </td>
                 </tr>
@@ -545,18 +549,5 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      function confirmReject(form) {
-        const reason = prompt('Enter rejection reason (optional):');
-        if (reason !== null) {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'rejection_reason';
-          input.value = reason;
-          form.appendChild(input);
-        }
-        return confirm('Reject this appointment request?');
-      }
-    </script>
   </body>
 </html>

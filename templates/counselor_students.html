@@ -494,7 +494,8 @@
               <thead>
                 <tr>
                   <th>Student Name</th>
-                  <th>Student ID</th>
+                  <th>Student Number</th>
+                  <th>Phone</th>
                   <th>Risk Level</th>
                   <th>Priority</th>
                   <th>Last Assessment</th>
@@ -505,7 +506,8 @@
                 {% for student in students %}
                 <tr>
                   <td style="font-weight: 600; color: #f8fafc;">{{ student[1] }}</td>
-                  <td style="color: #cbd5e1;">{{ student[2] or 'N/A' }}</td>
+                  <td style="color: #cbd5e1; font-family: monospace;">{{ student[2] }}</td>
+                  <td style="color: #cbd5e1;">{{ student[3] or 'N/A' }}</td>
                   <td>
                     <span class="badge-risk {{ student[4]|lower|replace(' ', '-') }}">
                       {{ student[4] or 'Not Assessed' }}

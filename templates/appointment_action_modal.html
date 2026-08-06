@@ -1,0 +1,83 @@
+<div class="appointment-action-backdrop" id="appointmentActionModal" hidden>
+  <section class="appointment-action-card" role="dialog" aria-modal="true" aria-labelledby="appointmentActionTitle" aria-describedby="appointmentActionDescription">
+    <div class="appointment-action-icon" id="appointmentActionIcon" aria-hidden="true">✓</div>
+    <div class="appointment-action-content">
+      <h2 id="appointmentActionTitle">Complete appointment</h2>
+      <p id="appointmentActionDescription">Add an optional note before completing this appointment.</p>
+      <label for="appointmentActionNote" id="appointmentActionLabel">Meeting notes <span>(optional)</span></label>
+      <textarea id="appointmentActionNote" rows="4" maxlength="5000" placeholder="Add a brief private note for this appointment"></textarea>
+      <div class="appointment-action-buttons">
+        <button type="button" class="appointment-action-cancel" data-appointment-cancel>Cancel</button>
+        <button type="button" class="appointment-action-confirm" data-appointment-confirm>Complete appointment</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  .appointment-action-backdrop { position: fixed; inset: 0; z-index: 2100; display: grid; place-items: center; padding: 1.25rem; background: rgba(15, 23, 42, .7); backdrop-filter: blur(5px); }
+  .appointment-action-backdrop[hidden] { display: none; }
+  .appointment-action-card { width: min(100%, 500px); display: flex; gap: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 18px; background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 0, .3); }
+  .appointment-action-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 50%; color: #047857; background: #d1fae5; font-size: 1.35rem; font-weight: 800; }
+  .appointment-action-backdrop.is-reject .appointment-action-icon { color: #b91c1c; background: #fee2e2; }
+  .appointment-action-content { min-width: 0; flex: 1; }
+  .appointment-action-content h2 { margin: .1rem 0 .45rem; color: #0f172a; font-size: 1.15rem; font-weight: 700; }
+  .appointment-action-content p { margin: 0 0 1rem; color: #475569; font-size: .94rem; line-height: 1.5; }
+  .appointment-action-content label { display: block; margin-bottom: .4rem; color: #334155; font-size: .9rem; font-weight: 600; }
+  .appointment-action-content label span { color: #64748b; font-weight: 400; }
+  .appointment-action-content textarea { width: 100%; resize: vertical; padding: .7rem .8rem; border: 1px solid #cbd5e1; border-radius: 8px; color: #0f172a; font: inherit; }
+  .appointment-action-content textarea:focus { outline: 3px solid #bfdbfe; border-color: #2563eb; }
+  .appointment-action-buttons { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1.25rem; }
+  .appointment-action-buttons button { border: 0; border-radius: 8px; padding: .58rem 1rem; font: inherit; font-weight: 600; cursor: pointer; }
+  .appointment-action-cancel { color: #334155; background: #e2e8f0; }
+  .appointment-action-confirm { color: #fff; background: #2563eb; }
+  .appointment-action-backdrop.is-reject .appointment-action-confirm { background: #dc2626; }
+</style>
+
+<script>
+  (function () {
+    var modal = document.getElementById('appointmentActionModal');
+    var activeForm = null;
+    var actionType = 'complete';
+    var note = document.getElementById('appointmentActionNote');
+    var title = document.getElementById('appointmentActionTitle');
+    var description = document.getElementById('appointmentActionDescription');
+    var label = document.getElementById('appointmentActionLabel');
+    var icon = document.getElementById('appointmentActionIcon');
+    var confirmButton = modal.querySelector('[data-appointment-confirm]');
+    var close = function () { modal.hidden = true; activeForm = null; };
+
+    window.openAppointmentActionModal = function (form, type) {
+      activeForm = form;
+      actionType = type;
+      var isReject = type === 'reject';
+      modal.classList.toggle('is-reject', isReject);
+      title.textContent = isReject ? 'Reject appointment request' : 'Complete appointment';
+      description.textContent = isReject ? 'You may add an optional reason before rejecting this request.' : 'Add an optional private note before completing this appointment.';
+      label.innerHTML = isReject ? 'Rejection reason <span>(optional)</span>' : 'Meeting notes <span>(optional)</span>';
+      note.placeholder = isReject ? 'Add a brief reason for the student' : 'Add a brief private note for this appointment';
+      icon.textContent = isReject ? '!' : '✓';
+      confirmButton.textContent = isReject ? 'Reject request' : 'Complete appointment';
+      note.value = '';
+      modal.hidden = false;
+      note.focus();
+    };
+
+    modal.querySelector('[data-appointment-cancel]').addEventListener('click', close);
+    confirmButton.addEventListener('click', function () {
+      if (!activeForm) return;
+      var fieldName = actionType === 'reject' ? 'rejection_reason' : 'meeting_notes';
+      var existing = activeForm.querySelector('input[name="' + fieldName + '"]');
+      if (!existing) {
+        existing = document.createElement('input');
+        existing.type = 'hidden';
+        existing.name = fieldName;
+        activeForm.appendChild(existing);
+      }
+      existing.value = note.value.trim();
+      activeForm.requestSubmit();
+    });
+    modal.addEventListener('click', function (event) { if (event.target === modal) close(); });
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !modal.hidden) close(); });
+  }());
+</script>

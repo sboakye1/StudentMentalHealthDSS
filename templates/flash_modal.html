@@ -1,0 +1,48 @@
+{# Consume the session queue here so legacy inline flash blocks do not duplicate this modal. #}
+{% with messages = session.pop('_flashes', []) %}
+  {% if messages %}
+    {% set is_success = messages | selectattr('0', 'equalto', 'success') | list | length == messages | length %}
+    <div class="mindcare-feedback-backdrop" id="mindcareFeedbackModal" role="presentation">
+      <section class="mindcare-feedback-card {{ 'is-success' if is_success else 'is-error' }}" role="dialog" aria-modal="true" aria-labelledby="mindcareFeedbackTitle" aria-describedby="mindcareFeedbackMessages">
+        <div class="mindcare-feedback-icon" aria-hidden="true">{% if is_success %}&#10003;{% else %}!{% endif %}</div>
+        <div class="mindcare-feedback-content">
+          <h2 id="mindcareFeedbackTitle">{{ 'Success' if is_success else 'Please review this message' }}</h2>
+          <div id="mindcareFeedbackMessages">
+            {% for category, message in messages %}
+              <p class="mindcare-feedback-message">{{ message }}</p>
+            {% endfor %}
+          </div>
+          <button type="button" class="mindcare-feedback-close" data-feedback-close autofocus>Continue</button>
+        </div>
+      </section>
+    </div>
+
+    <style>
+      .mindcare-feedback-backdrop { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 1.25rem; background: rgba(15, 23, 42, .66); backdrop-filter: blur(5px); }
+      .mindcare-feedback-card { width: min(100%, 440px); display: flex; gap: 1rem; padding: 1.5rem; border-radius: 18px; background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 0, .3); border: 1px solid #e2e8f0; animation: mindcare-feedback-in .2s ease-out; }
+      .mindcare-feedback-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 50%; font-weight: 800; font-size: 1.35rem; }
+      .is-success .mindcare-feedback-icon { color: #047857; background: #d1fae5; }
+      .is-error .mindcare-feedback-icon { color: #b91c1c; background: #fee2e2; }
+      .mindcare-feedback-content { min-width: 0; flex: 1; }
+      .mindcare-feedback-content h2 { margin: .15rem 0 .55rem; color: #0f172a; font-size: 1.1rem; font-weight: 700; }
+      .mindcare-feedback-message { margin: 0 0 .45rem; color: #475569; font-size: .94rem; line-height: 1.5; }
+      .mindcare-feedback-message:last-child { margin-bottom: 1rem; }
+      .mindcare-feedback-close { min-width: 104px; padding: .58rem 1rem; border: 0; border-radius: 8px; color: #fff; background: #2563eb; font: inherit; font-weight: 600; cursor: pointer; }
+      .mindcare-feedback-close:hover { background: #1d4ed8; }
+      .mindcare-feedback-close:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+      @keyframes mindcare-feedback-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+      @media (max-width: 480px) { .mindcare-feedback-card { padding: 1.25rem; } }
+    </style>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('mindcareFeedbackModal');
+        if (!modal) return;
+        var close = function () { modal.remove(); };
+        modal.querySelector('[data-feedback-close]').addEventListener('click', close);
+        modal.addEventListener('click', function (event) { if (event.target === modal) close(); });
+        document.addEventListener('keydown', function (event) { if (event.key === 'Escape') close(); }, { once: true });
+      });
+    </script>
+  {% endif %}
+{% endwith %}
